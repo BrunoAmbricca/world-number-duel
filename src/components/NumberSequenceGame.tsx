@@ -28,6 +28,7 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
     setUserAnswer,
     isCorrect,
     currentRound,
+    completedRounds,
     finalScore,
     startGame,
     nextNumber,
@@ -123,6 +124,7 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
           correctSum={correctSum}
           isCorrect={isCorrect}
           currentRound={currentRound}
+          completedRounds={completedRounds}
           finalScore={finalScore}
           highScore={highScore}
           onStart={startGame}

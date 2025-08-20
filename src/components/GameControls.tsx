@@ -9,6 +9,7 @@ interface GameControlsProps {
   correctSum: number;
   isCorrect: boolean | null;
   currentRound: number;
+  completedRounds: number;
   finalScore: number;
   highScore: number;
   onStart: () => void;
@@ -26,6 +27,7 @@ export const GameControls = ({
   correctSum,
   isCorrect,
   currentRound,
+  completedRounds,
   finalScore,
   highScore,
   onStart,
@@ -108,7 +110,7 @@ export const GameControls = ({
         <div className="mb-6 text-lg text-gray-700">
           <p>Your answer: <span className="font-semibold">{userAnswer}</span></p>
           <p>Correct answer: <span className="font-semibold">{correctSum}</span></p>
-          <p className="mt-2 font-semibold text-blue-600">Round {currentRound} Complete!</p>
+          <p className="mt-2 font-semibold text-blue-600">Round {completedRounds} Complete!</p>
         </div>
         {isCorrect && (
           <button

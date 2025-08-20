@@ -13,6 +13,7 @@ export const useGameLogic = () => {
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [currentRound, setCurrentRound] = useState<number>(0);
+  const [completedRounds, setCompletedRounds] = useState<number>(0);
   const [finalScore, setFinalScore] = useState<number>(0);
 
   const startGame = useCallback(() => {
@@ -23,6 +24,7 @@ export const useGameLogic = () => {
     setUserAnswer('');
     setIsCorrect(null);
     setCurrentRound(1);
+    setCompletedRounds(0);
     setFinalScore(0);
     setGameState('displaying');
   }, []);
@@ -52,12 +54,13 @@ export const useGameLogic = () => {
     setIsCorrect(correct);
     
     if (correct) {
+      setCompletedRounds(prev => prev + 1);
       setGameState('result');
     } else {
-      setFinalScore(currentRound);
+      setFinalScore(completedRounds);
       setGameState('gameOver');
     }
-  }, [userAnswer, correctSum, currentRound]);
+  }, [userAnswer, correctSum, completedRounds]);
 
   const resetGame = useCallback(() => {
     setGameState('idle');
@@ -67,6 +70,7 @@ export const useGameLogic = () => {
     setUserAnswer('');
     setIsCorrect(null);
     setCurrentRound(0);
+    setCompletedRounds(0);
     setFinalScore(0);
   }, []);
 
@@ -79,6 +83,7 @@ export const useGameLogic = () => {
     setUserAnswer,
     isCorrect,
     currentRound,
+    completedRounds,
     finalScore,
     startGame,
     nextNumber,
