@@ -34,4 +34,30 @@ export const api = {
     });
     return response.json();
   },
+
+  // High Scores
+  getHighScore: async (playerId: string) => {
+    const response = await fetch(`${API_BASE}/high-score?playerId=${playerId}`);
+    return response.json();
+  },
+
+  saveHighScore: async (playerId: string, score: number) => {
+    const response = await fetch(`${API_BASE}/high-score`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId, score }),
+    });
+    return response.json();
+  },
+
+  // Leaderboards
+  getLeaderboard: async (type: 'weekly' | 'daily' | 'singleplayer', limit = 100, offset = 0) => {
+    const params = new URLSearchParams({
+      type,
+      limit: limit.toString(),
+      offset: offset.toString(),
+    });
+    const response = await fetch(`${API_BASE}/leaderboards?${params}`);
+    return response.json();
+  },
 };
