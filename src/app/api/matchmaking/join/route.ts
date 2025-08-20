@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase';
+import { pusherServer } from '@/lib/pusher';
+import { generateRandomSequence, calculateSum } from '@/utils/gameHelpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,9 +70,9 @@ export async function POST(request: NextRequest) {
         .delete()
         .in('player_id', [playerId, opponent.player_id]);
 
-      // Generate first round
-      const sequence = generateSequence();
-      const targetSum = calculateTargetSum(sequence);
+      // Generate first round using the same logic as single-player
+      const sequence = generateRandomSequence(5); // Same as single-player: 5 numbers
+      const correctSum = calculateSum(sequence);   // Calculate the actual sum
 
       const { error: roundError } = await supabase
         .from('match_rounds')
@@ -78,11 +80,22 @@ export async function POST(request: NextRequest) {
           match_id: match.id,
           round_number: 1,
           sequence,
-          target_sum: targetSum
+          correct_sum: correctSum
         });
 
       if (roundError) {
         return NextResponse.json({ error: roundError.message }, { status: 500 });
+      }
+
+      // Notify the first player via Pusher
+      try {
+        await pusherServer.trigger(`player-${opponent.player_id}`, 'match-found', {
+          matchId: match.id,
+          opponentId: playerId
+        });
+        console.log(`📡 Notified player ${opponent.player_id} about match ${match.id}`);
+      } catch (pusherError) {
+        console.warn('Failed to send Pusher notification to first player:', pusherError);
       }
 
       return NextResponse.json({
@@ -100,18 +113,8 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Matchmaking join error:', error);
-    return NextResponse.json({ error: 'Internal server error', details: error.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: 'Internal server error', details: errorMessage }, { status: 500 });
   }
 }
 
-function generateSequence(): number[] {
-  const length = Math.floor(Math.random() * 3) + 8; // 8-10 numbers
-  return Array.from({ length }, () => Math.floor(Math.random() * 20) + 1);
-}
-
-function calculateTargetSum(sequence: number[]): number {
-  // Find a valid subset sum (ensure it's solvable)
-  const subsetSize = Math.floor(Math.random() * 3) + 3; // 3-5 numbers
-  const shuffled = [...sequence].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, subsetSize).reduce((sum, num) => sum + num, 0);
-}

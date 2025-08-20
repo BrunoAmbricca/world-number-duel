@@ -1,4 +1,4 @@
-import MultiplayerGamePage from '@/components/MultiplayerGamePage';
+import MultiplayerNumberSequenceGame from '@/components/MultiplayerNumberSequenceGame';
 
 interface GamePageProps {
   params: Promise<{
@@ -8,5 +8,5 @@ interface GamePageProps {
 
 export default async function GamePage({ params }: GamePageProps) {
   const { matchId } = await params;
-  return <MultiplayerGamePage matchId={matchId} />;
+  return <MultiplayerNumberSequenceGame matchId={matchId} />;
 }

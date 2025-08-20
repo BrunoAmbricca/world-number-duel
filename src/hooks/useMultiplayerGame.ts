@@ -6,18 +6,16 @@ import { MatchState, PusherEvents } from '@/types/multiplayer';
 interface MultiplayerGameState extends MatchState {
   isLoading: boolean;
   error?: string;
-  selectedNumbers: number[];
   isSubmitting: boolean;
   waitingForOpponent: boolean;
 }
 
 export function useMultiplayerGame(matchId: string, playerId: string) {
   const [state, setState] = useState<MultiplayerGameState>({
-    match: {} as MultiplayerGameState['match'],
+    match: null as any,
     currentRound: undefined,
     rounds: [],
     isLoading: true,
-    selectedNumbers: [],
     isSubmitting: false,
     waitingForOpponent: false,
   });
@@ -49,22 +47,13 @@ export function useMultiplayerGame(matchId: string, playerId: string) {
     }
   }, [matchId]);
 
-  const toggleNumber = useCallback((number: number) => {
-    setState(prev => ({
-      ...prev,
-      selectedNumbers: prev.selectedNumbers.includes(number)
-        ? prev.selectedNumbers.filter(n => n !== number)
-        : [...prev.selectedNumbers, number],
-    }));
-  }, []);
-
-  const submitAnswer = useCallback(async () => {
-    if (state.selectedNumbers.length === 0 || state.isSubmitting) return;
+  const submitAnswer = useCallback(async (answer: number) => {
+    if (state.isSubmitting) return;
 
     setState(prev => ({ ...prev, isSubmitting: true, error: undefined }));
 
     try {
-      const result = await api.submitAnswer(matchId, playerId, state.selectedNumbers);
+      const result = await api.submitAnswer(matchId, playerId, answer);
       
       if (result.error) {
         setState(prev => ({ ...prev, error: result.error, isSubmitting: false }));
@@ -74,7 +63,6 @@ export function useMultiplayerGame(matchId: string, playerId: string) {
       setState(prev => ({
         ...prev,
         isSubmitting: false,
-        selectedNumbers: [],
         waitingForOpponent: !result.roundCompleted,
       }));
 
@@ -89,11 +77,7 @@ export function useMultiplayerGame(matchId: string, playerId: string) {
         isSubmitting: false 
       }));
     }
-  }, [matchId, playerId, state.selectedNumbers, state.isSubmitting, loadMatch]);
-
-  const clearSelection = useCallback(() => {
-    setState(prev => ({ ...prev, selectedNumbers: [] }));
-  }, []);
+  }, [matchId, playerId, state.isSubmitting, loadMatch]);
 
   // Real-time updates
   useEffect(() => {
@@ -103,16 +87,33 @@ export function useMultiplayerGame(matchId: string, playerId: string) {
     const channel = pusherClient.subscribe(`match-${matchId}`);
 
     channel.bind('round-completed', (data: PusherEvents['round-completed']) => {
-      setState(prev => ({
-        ...prev,
-        match: data.match,
-        currentRound: data.nextRoundNeeded ? undefined : data.round,
-        waitingForOpponent: false,
-      }));
+      console.log('🔔 Round completed event received:', data);
+      console.log('📊 Current state before update:', {
+        match: state.match,
+        currentRound: state.currentRound,
+        waitingForOpponent: state.waitingForOpponent
+      });
+      
+      setState(prev => {
+        console.log('🔄 Updating state with round completed data...');
+        const newState = {
+          ...prev,
+          match: data.match,
+          waitingForOpponent: false,
+        };
+        console.log('📊 New state after update:', newState);
+        return newState;
+      });
 
       if (data.nextRoundNeeded) {
-        // Reload to get new round
-        loadMatch();
+        console.log('🔄 Next round needed, reloading match data...');
+        // Small delay to ensure new round is created in database
+        setTimeout(() => {
+          console.log('🔄 Calling loadMatch to get new round...');
+          loadMatch();
+        }, 500);
+      } else {
+        console.log('🏁 Match completed, final state should show winner');
       }
     });
 
@@ -132,18 +133,12 @@ export function useMultiplayerGame(matchId: string, playerId: string) {
     loadMatch();
   }, [loadMatch]);
 
-  const isMyTurn = state.match.current_turn === playerId;
-  const isGameActive = state.match.status === 'active';
-  const canSubmit = isMyTurn && isGameActive && state.selectedNumbers.length > 0 && !state.isSubmitting && !state.waitingForOpponent;
+  const isGameActive = state.match?.status === 'active';
 
   return {
     ...state,
-    toggleNumber,
     submitAnswer,
-    clearSelection,
     loadMatch,
-    isMyTurn,
     isGameActive,
-    canSubmit,
   };
 }

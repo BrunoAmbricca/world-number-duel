@@ -25,9 +25,9 @@ export interface MatchRound {
   match_id: string;
   round_number: number;
   sequence: number[];
-  target_sum: number;
-  player1_answer?: number[];
-  player2_answer?: number[];
+  correct_sum: number;
+  player1_answer?: number;
+  player2_answer?: number;
   player1_correct?: boolean;
   player2_correct?: boolean;
   player1_submitted_at?: string;

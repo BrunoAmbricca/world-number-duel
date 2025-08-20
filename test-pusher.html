@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pusher Test</title>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+</head>
+<body>
+    <h1>Pusher Test</h1>
+    <div id="status">Connecting...</div>
+    <div id="messages"></div>
+    
+    <script>
+        const pusher = new Pusher('9ade965490596354d1b6', {
+            cluster: 'us2'
+        });
+
+        const channel = pusher.subscribe('player-test123');
+        
+        pusher.connection.bind('connected', function() {
+            document.getElementById('status').textContent = 'Connected to Pusher!';
+            console.log('✅ Connected to Pusher');
+        });
+
+        pusher.connection.bind('disconnected', function() {
+            document.getElementById('status').textContent = 'Disconnected from Pusher';
+            console.log('❌ Disconnected from Pusher');
+        });
+
+        channel.bind('match-found', function(data) {
+            console.log('🎯 Match found event received:', data);
+            const messages = document.getElementById('messages');
+            messages.innerHTML += '<p>Match found: ' + JSON.stringify(data) + '</p>';
+        });
+
+        // Test button to trigger event from server
+        const testButton = document.createElement('button');
+        testButton.textContent = 'Test Match Found Event';
+        testButton.onclick = function() {
+            fetch('http://localhost:3001/api/test-pusher', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ playerId: 'test123' })
+            }).then(response => response.json())
+              .then(data => console.log('Test response:', data));
+        };
+        document.body.appendChild(testButton);
+    </script>
+</body>
+</html>

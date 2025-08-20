@@ -26,11 +26,11 @@ export const api = {
     return response.json();
   },
 
-  submitAnswer: async (matchId: string, playerId: string, selectedNumbers: number[]) => {
+  submitAnswer: async (matchId: string, playerId: string, answer: number) => {
     const response = await fetch(`${API_BASE}/matches/${matchId}/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId, selectedNumbers }),
+      body: JSON.stringify({ playerId, answer }),
     });
     return response.json();
   },

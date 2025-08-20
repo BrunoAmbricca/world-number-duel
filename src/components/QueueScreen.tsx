@@ -19,10 +19,12 @@ export default function QueueScreen() {
   } = useMatchmaking(session?.playerId);
 
   useEffect(() => {
+    console.log('🔄 QueueScreen state:', { matchFound, matchId, isInQueue, isSearching });
     if (matchFound && matchId) {
+      console.log(`🎮 Redirecting to game: /game/${matchId}`);
       router.push(`/game/${matchId}`);
     }
-  }, [matchFound, matchId, router]);
+  }, [matchFound, matchId, router, isInQueue, isSearching]);
 
   if (!session) {
     return (

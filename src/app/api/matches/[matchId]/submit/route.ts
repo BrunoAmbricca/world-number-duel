@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase';
 import { pusherServer } from '@/lib/pusher';
+import { generateRandomSequence, calculateSum } from '@/utils/gameHelpers';
 
 export async function POST(
   request: NextRequest,
@@ -9,10 +10,10 @@ export async function POST(
   try {
     const supabase = createClient();
     const { matchId } = await params;
-    const { playerId, selectedNumbers } = await request.json();
+    const { playerId, answer } = await request.json();
 
-    if (!playerId || !selectedNumbers) {
-      return NextResponse.json({ error: 'Player ID and selected numbers required' }, { status: 400 });
+    if (!playerId || answer === undefined) {
+      return NextResponse.json({ error: 'Player ID and answer required' }, { status: 400 });
     }
 
     // Get match and current round
@@ -41,14 +42,14 @@ export async function POST(
       return NextResponse.json({ error: 'Current round not found' }, { status: 404 });
     }
 
-    // Check if answer is correct
-    const selectedSum = selectedNumbers.reduce((sum: number, num: number) => sum + num, 0);
-    const isCorrect = selectedSum === currentRound.target_sum;
+    // Check if answer is correct (same logic as single-player)
+    const userSum = parseInt(answer.toString(), 10);
+    const isCorrect = userSum === currentRound.correct_sum;
 
     // Determine which player submitted
     const isPlayer1 = playerId === match.player1_id;
     const updateData = {
-      [`player${isPlayer1 ? '1' : '2'}_answer`]: selectedNumbers,
+      [`player${isPlayer1 ? '1' : '2'}_answer`]: userSum,
       [`player${isPlayer1 ? '1' : '2'}_correct`]: isCorrect,
       [`player${isPlayer1 ? '1' : '2'}_submitted_at`]: new Date().toISOString()
     } as Record<string, unknown>;
@@ -65,10 +66,25 @@ export async function POST(
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    // Check if both players have submitted
-    const bothSubmitted = updatedRound.player1_answer && updatedRound.player2_answer;
+    // Check if both players have submitted (handle both JSONB and INTEGER types)
+    const player1HasAnswered = updatedRound.player1_answer !== null && updatedRound.player1_answer !== undefined;
+    const player2HasAnswered = updatedRound.player2_answer !== null && updatedRound.player2_answer !== undefined;
+    const bothSubmitted = player1HasAnswered && player2HasAnswered;
+    
+    console.log('🔍 Round status:', {
+      player1_answer: updatedRound.player1_answer,
+      player2_answer: updatedRound.player2_answer,
+      player1_answer_type: typeof updatedRound.player1_answer,
+      player2_answer_type: typeof updatedRound.player2_answer,
+      player1HasAnswered,
+      player2HasAnswered,
+      bothSubmitted,
+      player1_correct: updatedRound.player1_correct,
+      player2_correct: updatedRound.player2_correct
+    });
 
     if (bothSubmitted) {
+      console.log('🎯 Both players submitted, processing round completion...');
       // Determine round outcome
       const player1Correct = updatedRound.player1_correct;
       const player2Correct = updatedRound.player2_correct;
@@ -77,23 +93,26 @@ export async function POST(
       let nextRoundNeeded = false;
 
       if (player1Correct && !player2Correct) {
-        // Player 1 wins
+        // Player 1 wins (one correct, one incorrect)
+        console.log('🏆 Player 1 wins!');
         matchUpdate = {
           status: 'completed',
           winner_id: match.player1_id
         };
       } else if (!player1Correct && player2Correct) {
-        // Player 2 wins
+        // Player 2 wins (one correct, one incorrect)
+        console.log('🏆 Player 2 wins!');
         matchUpdate = {
           status: 'completed',
           winner_id: match.player2_id
         };
       } else {
-        // Both correct or both incorrect - continue to next round
+        // Both correct OR both incorrect - generate new sequence and continue
+        console.log('🔄 Both players same result, continuing to next round...');
         nextRoundNeeded = true;
         matchUpdate = {
-          current_round: match.current_round + 1,
-          current_turn: match.current_turn === match.player1_id ? match.player2_id : match.player1_id
+          current_round: match.current_round + 1
+          // No turn switching - both players answer simultaneously
         };
       }
 
@@ -113,8 +132,8 @@ export async function POST(
 
       // Create next round if needed
       if (nextRoundNeeded) {
-        const sequence = generateSequence();
-        const targetSum = calculateTargetSum(sequence);
+        const sequence = generateRandomSequence(5); // Same as single-player
+        const correctSum = calculateSum(sequence);
 
         await supabase
           .from('match_rounds')
@@ -122,19 +141,22 @@ export async function POST(
             match_id: matchId,
             round_number: match.current_round + 1,
             sequence,
-            target_sum: targetSum
+            correct_sum: correctSum
           });
       }
 
       // Notify via Pusher
       try {
-        await pusherServer.trigger(`match-${matchId}`, 'round-completed', {
+        const pusherData = {
           round: updatedRound,
           match: updatedMatch,
           nextRoundNeeded
-        });
+        };
+        
+        await pusherServer.trigger(`match-${matchId}`, 'round-completed', pusherData);
+        console.log('✅ Pusher round-completed notification sent:', pusherData);
       } catch (pusherError) {
-        console.warn('Failed to send Pusher notification:', pusherError);
+        console.warn('❌ Failed to send Pusher notification:', pusherError);
       }
 
       return NextResponse.json({
@@ -145,13 +167,7 @@ export async function POST(
         round: updatedRound
       });
     } else {
-      // Switch turns
-      const newTurn = match.current_turn === match.player1_id ? match.player2_id : match.player1_id;
-      await supabase
-        .from('matches')
-        .update({ current_turn: newTurn })
-        .eq('id', matchId);
-
+      // Only one player has submitted, wait for the other
       // Notify via Pusher
       try {
         await pusherServer.trigger(`match-${matchId}`, 'answer-submitted', {
@@ -177,14 +193,3 @@ export async function POST(
   }
 }
 
-function generateSequence(): number[] {
-  const length = Math.floor(Math.random() * 3) + 8; // 8-10 numbers
-  return Array.from({ length }, () => Math.floor(Math.random() * 20) + 1);
-}
-
-function calculateTargetSum(sequence: number[]): number {
-  // Find a valid subset sum (ensure it's solvable)
-  const subsetSize = Math.floor(Math.random() * 3) + 3; // 3-5 numbers
-  const shuffled = [...sequence].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, subsetSize).reduce((sum, num) => sum + num, 0);
-}
