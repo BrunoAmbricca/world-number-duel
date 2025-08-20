@@ -65,16 +65,18 @@ export default function MultiplayerNumberSequenceGame({ matchId }: MultiplayerNu
     }
   }, [currentRound?.id, currentRound?.round_number]); // Use round ID and number as dependencies
 
-  // Handle match completion - reset local state when match ends
+  // Handle match completion - redirect to result page
   useEffect(() => {
     if (match?.status === 'completed') {
-      console.log('🏁 Match completed, resetting local game state');
-      setGameState('idle');
-      setHasSubmitted(false);
-      setUserAnswer('');
-      setIsCorrect(null);
+      console.log('🏁 Match completed, redirecting to result page...');
+      console.log('🏆 Winner:', match.winner_id, 'Current player:', session?.playerId);
+      
+      // Small delay to ensure the user sees the final game state briefly
+      setTimeout(() => {
+        router.push(`/game/${matchId}/result`);
+      }, 2000);
     }
-  }, [match?.status]);
+  }, [match?.status, matchId, router, session?.playerId]);
 
   // Auto-start first round
   useEffect(() => {
@@ -168,8 +170,6 @@ export default function MultiplayerNumberSequenceGame({ matchId }: MultiplayerNu
     );
   }
 
-  const opponent = match.player1_id === session.playerId ? match.player2 : match.player1;
-
   const getStatusMessage = () => {
     console.log('🔍 getStatusMessage called with:', {
       isGameActive,
@@ -181,11 +181,11 @@ export default function MultiplayerNumberSequenceGame({ matchId }: MultiplayerNu
     if (!isGameActive) {
       if (match?.status === 'completed') {
         if (match.winner_id === session?.playerId) {
-          return { text: 'You won! 🎉', color: 'text-green-600' };
+          return { text: 'You won! 🎉 Redirecting...', color: 'text-green-600' };
         } else if (match.winner_id) {
-          return { text: 'You lost 😞', color: 'text-red-600' };
+          return { text: 'You lost 😞 Redirecting...', color: 'text-red-600' };
         } else {
-          return { text: 'Match ended', color: 'text-gray-600' };
+          return { text: 'Match ended - Redirecting...', color: 'text-gray-600' };
         }
       }
       return { text: 'Match not active', color: 'text-gray-600' };

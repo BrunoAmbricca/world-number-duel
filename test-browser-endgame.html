@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test End-Game Flow</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        button { margin: 5px; padding: 10px 15px; }
+        .log { background-color: #f8f9fa; padding: 10px; margin: 10px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>End-Game Flow Testing</h1>
+    
+    <div class="section">
+        <h2>📱 Manual Testing Instructions</h2>
+        <p>To test the complete end-game flow:</p>
+        <ol>
+            <li>Open <strong>two separate browser tabs</strong></li>
+            <li>In both tabs, go to: <a href="http://localhost:3001/queue" target="_blank">http://localhost:3001/queue</a></li>
+            <li>Enter different player names in each tab (e.g., "Alice" and "Bob")</li>
+            <li>Click "Join Queue" in both tabs</li>
+            <li>You should be redirected to the game</li>
+            <li>Play the game - make sure one player answers correctly and the other incorrectly</li>
+            <li>Watch both tabs automatically redirect to the result page after ~2 seconds</li>
+            <li>Verify both players see the correct winner/loser message</li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <h2>🧪 Automated API Testing</h2>
+        <button onclick="testEndGameAPI()">Test End-Game API</button>
+        <div id="api-results" class="log"></div>
+    </div>
+
+    <div class="section">
+        <h2>🔗 Direct Links for Testing</h2>
+        <p>After running the API test above, you can visit the result page directly:</p>
+        <div id="result-links"></div>
+    </div>
+
+    <div class="section">
+        <h2>✅ Expected Results</h2>
+        <h3>Game Flow:</h3>
+        <ul>
+            <li>When one player answers correctly and the other doesn't, the match should end immediately</li>
+            <li>Both players should see "You won! 🎉 Redirecting..." or "You lost 😞 Redirecting..."</li>
+            <li>After 2 seconds, both players are redirected to /game/[matchId]/result</li>
+        </ul>
+        
+        <h3>Result Page:</h3>
+        <ul>
+            <li>Winner sees: "You Won!" with 🎉 emoji and green text</li>
+            <li>Loser sees: "You Lost" with 😞 emoji and red text</li>
+            <li>Both see match summary with player names and round count</li>
+            <li>"Back to Main Menu" button takes you to the start screen</li>
+            <li>"Play Again" button takes you back to the queue</li>
+        </ul>
+    </div>
+
+    <script>
+        async function testEndGameAPI() {
+            const resultsDiv = document.getElementById('api-results');
+            const linksDiv = document.getElementById('result-links');
+            resultsDiv.innerHTML = 'Testing end-game API flow...\n';
+            
+            try {
+                // Step 1: Create match
+                resultsDiv.innerHTML += '👤 Player 1 joining queue...\n';
+                const response1 = await fetch('/api/matchmaking/join', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerId: 'test-alice' })
+                });
+                
+                resultsDiv.innerHTML += '👤 Player 2 joining queue...\n';
+                const response2 = await fetch('/api/matchmaking/join', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerId: 'test-bob' })
+                });
+                
+                const matchData = await response2.json();
+                if (!matchData.matched) {
+                    throw new Error('Match was not created');
+                }
+                
+                const matchId = matchData.matchId;
+                resultsDiv.innerHTML += `🎯 Match created: ${matchId}\n`;
+                
+                // Step 2: Get match details
+                const matchResponse = await fetch(`/api/matches/${matchId}`);
+                const match = await matchResponse.json();
+                const correctSum = match.currentRound.correct_sum;
+                resultsDiv.innerHTML += `🎲 Correct sum: ${correctSum}\n`;
+                
+                // Step 3: Submit answers (Alice correct, Bob wrong)
+                resultsDiv.innerHTML += '✅ Alice submitting correct answer...\n';
+                await fetch(`/api/matches/${matchId}/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerId: 'test-alice', answer: correctSum })
+                });
+                
+                resultsDiv.innerHTML += '❌ Bob submitting wrong answer...\n';
+                await fetch(`/api/matches/${matchId}/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerId: 'test-bob', answer: correctSum + 10 })
+                });
+                
+                // Step 4: Check final result
+                const finalResponse = await fetch(`/api/matches/${matchId}`);
+                const finalMatch = await finalResponse.json();
+                
+                if (finalMatch.match.status === 'completed') {
+                    resultsDiv.innerHTML += '🏆 Match completed successfully!\n';
+                    resultsDiv.innerHTML += `🎉 Winner: ${finalMatch.match.winner_id}\n`;
+                    resultsDiv.className = 'log success';
+                    
+                    // Create result page links
+                    linksDiv.innerHTML = `
+                        <p><strong>Result page for Alice (winner):</strong></p>
+                        <a href="/game/${matchId}/result?playerId=test-alice" target="_blank">
+                            http://localhost:3001/game/${matchId}/result?playerId=test-alice
+                        </a>
+                        <p><strong>Result page for Bob (loser):</strong></p>
+                        <a href="/game/${matchId}/result?playerId=test-bob" target="_blank">
+                            http://localhost:3001/game/${matchId}/result?playerId=test-bob
+                        </a>
+                    `;
+                } else {
+                    throw new Error(`Match not completed. Status: ${finalMatch.match.status}`);
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `❌ Error: ${error.message}\n`;
+                resultsDiv.className = 'log error';
+            }
+        }
+    </script>
+</body>
+</html>
