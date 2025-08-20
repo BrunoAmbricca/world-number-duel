@@ -49,4 +49,15 @@ export const api = {
     });
     return response.json();
   },
+
+  // Leaderboards
+  getLeaderboard: async (type: 'weekly' | 'daily' | 'singleplayer', limit = 100, offset = 0) => {
+    const params = new URLSearchParams({
+      type,
+      limit: limit.toString(),
+      offset: offset.toString(),
+    });
+    const response = await fetch(`${API_BASE}/leaderboards?${params}`);
+    return response.json();
+  },
 };

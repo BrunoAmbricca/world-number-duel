@@ -17,6 +17,10 @@ export const StartScreen = () => {
     router.push('/queue');
   };
 
+  const handleLeaderboard = () => {
+    router.push('/leaderboard');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-xl p-12 w-full max-w-lg text-center">
@@ -55,6 +59,13 @@ export const StartScreen = () => {
             className="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-4 px-12 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
           >
             Multiplayer
+          </button>
+
+          <button
+            onClick={handleLeaderboard}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-xl py-4 px-12 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+          >
+            🏆 Leaderboard
           </button>
         </div>
         
