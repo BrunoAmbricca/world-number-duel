@@ -6,12 +6,17 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:multiplayer": "node test-multiplayer.js --run",
+    "test:db": "node test-db-setup.js"
   },
   "dependencies": {
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.4.7"
+    "next": "15.4.7",
+    "@supabase/supabase-js": "^2.39.0",
+    "pusher": "^5.2.0",
+    "pusher-js": "^8.4.0-rc2"
   },
   "devDependencies": {
     "typescript": "^5",

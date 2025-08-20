@@ -11,6 +11,7 @@ interface GameControlsProps {
   onStart: () => void;
   onSubmit: () => void;
   onReset: () => void;
+  disabled?: boolean;
 }
 
 export const GameControls = ({
@@ -21,14 +22,15 @@ export const GameControls = ({
   isCorrect,
   onStart,
   onSubmit,
-  onReset
+  onReset,
+  disabled = false
 }: GameControlsProps) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserAnswer(e.target.value);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && gameState === 'input' && userAnswer.trim()) {
+    if (e.key === 'Enter' && gameState === 'input' && userAnswer.trim() && !disabled) {
       onSubmit();
     }
   };
@@ -63,13 +65,14 @@ export const GameControls = ({
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             placeholder="Enter your answer"
-            className="text-2xl text-center border-2 border-gray-300 rounded-lg px-4 py-2 w-64 focus:border-blue-500 focus:outline-none"
+            className={`text-2xl text-center border-2 border-gray-300 rounded-lg px-4 py-2 w-64 focus:border-blue-500 focus:outline-none ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             autoFocus
+            disabled={disabled}
           />
         </div>
         <button
           onClick={onSubmit}
-          disabled={!userAnswer.trim()}
+          disabled={!userAnswer.trim() || disabled}
           className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
         >
           Submit Answer

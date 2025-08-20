@@ -12,6 +12,11 @@ export const StartScreen = () => {
     router.push('/game');
   };
 
+  const handleMultiplayer = () => {
+    startSession();
+    router.push('/queue');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-xl p-12 w-full max-w-lg text-center">
@@ -20,7 +25,7 @@ export const StartScreen = () => {
             Number Sequence Game
           </h1>
           <p className="text-gray-600 text-lg leading-relaxed">
-            Watch numbers appear on screen, remember them, and calculate their sum!
+            Challenge yourself or compete against other players in real-time!
           </p>
         </div>
         
@@ -37,12 +42,21 @@ export const StartScreen = () => {
           </div>
         </div>
 
-        <button
-          onClick={handlePlay}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl py-4 px-12 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
-        >
-          Start Playing
-        </button>
+        <div className="space-y-4">
+          <button
+            onClick={handlePlay}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl py-4 px-12 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+          >
+            Single Player
+          </button>
+          
+          <button
+            onClick={handleMultiplayer}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-4 px-12 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+          >
+            Multiplayer
+          </button>
+        </div>
         
         <p className="text-gray-500 text-sm mt-6">
           A unique player ID will be assigned to track your session
