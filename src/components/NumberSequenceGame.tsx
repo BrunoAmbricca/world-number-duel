@@ -30,6 +30,9 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
     currentRound,
     completedRounds,
     finalScore,
+    timeLeft,
+    isTimerActive,
+    timerStartTime,
     startGame,
     nextNumber,
     finishSequence,
@@ -127,6 +130,9 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
           completedRounds={completedRounds}
           finalScore={finalScore}
           highScore={highScore}
+          timeLeft={timeLeft}
+          isTimerActive={isTimerActive}
+          timerStartTime={timerStartTime}
           onStart={startGame}
           onSubmit={submitAnswer}
           onNextRound={nextRound}

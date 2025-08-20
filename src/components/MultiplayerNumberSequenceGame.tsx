@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/hooks/useSession';
 import { useMultiplayerGame } from '@/hooks/useMultiplayerGame';
@@ -35,6 +35,80 @@ export default function MultiplayerNumberSequenceGame({ matchId }: MultiplayerNu
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
+  
+  // Timer state
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [isTimerActive, setIsTimerActive] = useState<boolean>(false);
+  const [timerStartTime, setTimerStartTime] = useState<number>(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Timer functions (defined first to avoid initialization issues)
+  const stopTimer = useCallback(() => {
+    setIsTimerActive(false);
+    setTimeLeft(0);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const startTimer = useCallback(() => {
+    const startTime = Date.now();
+    setTimeLeft(5);
+    setTimerStartTime(startTime);
+    setIsTimerActive(true);
+  }, []);
+
+  // Timer countdown effect
+  useEffect(() => {
+    if (isTimerActive && timeLeft > 0) {
+      timerRef.current = setTimeout(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [isTimerActive, timeLeft]);
+
+  // Timer expiration effect
+  useEffect(() => {
+    if (isTimerActive && timeLeft === 0 && !hasSubmitted && currentRound) {
+      console.log('⏰ Timer expired, auto-submitting incorrect answer');
+      setIsTimerActive(false);
+      // Set empty answer and submit
+      setUserAnswer('');
+      // Trigger submit by calling the async function directly
+      (async () => {
+        stopTimer();
+        const userSum = -999999; // Invalid sum for timeout
+        setIsCorrect(false);
+        setHasSubmitted(true);
+        setGameState('waiting');
+        try {
+          await submitMultiplayerAnswer(userSum);
+        } catch (error) {
+          console.error('Failed to submit answer:', error);
+          setGameState('input');
+          setHasSubmitted(false);
+        }
+      })();
+    }
+  }, [isTimerActive, timeLeft, hasSubmitted, currentRound, stopTimer, submitMultiplayerAnswer]);
+
+  // Clear timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, []);
 
   // Debug state changes
   useEffect(() => {
@@ -61,9 +135,10 @@ export default function MultiplayerNumberSequenceGame({ matchId }: MultiplayerNu
       setUserAnswer('');
       setIsCorrect(null);
       setHasSubmitted(false);
+      stopTimer();
       setGameState('displaying');
     }
-  }, [currentRound?.id, currentRound?.round_number]); // Use round ID and number as dependencies
+  }, [currentRound?.id, currentRound?.round_number, stopTimer]); // Use round ID and number as dependencies
 
   // Handle match completion - redirect to result page
   useEffect(() => {
@@ -91,12 +166,15 @@ export default function MultiplayerNumberSequenceGame({ matchId }: MultiplayerNu
 
   const finishSequence = useCallback(() => {
     setGameState('input');
-  }, []);
+    startTimer();
+  }, [startTimer]);
 
   const submitAnswer = useCallback(async () => {
     if (!currentRound || !session || hasSubmitted) return;
 
-    const userSum = parseInt(userAnswer, 10);
+    stopTimer();
+    // If userAnswer is empty (timer expired), treat as incorrect
+    const userSum = userAnswer.trim() ? parseInt(userAnswer, 10) : -999999; // Use invalid sum for timeout
     setIsCorrect(userSum === currentRound.correct_sum);
     setHasSubmitted(true);
     setGameState('waiting');
@@ -108,7 +186,7 @@ export default function MultiplayerNumberSequenceGame({ matchId }: MultiplayerNu
       setGameState('input');
       setHasSubmitted(false);
     }
-  }, [userAnswer, currentRound, session, hasSubmitted, submitMultiplayerAnswer]);
+  }, [userAnswer, currentRound, session, hasSubmitted, submitMultiplayerAnswer, stopTimer]);
 
   const resetForNextRound = useCallback(() => {
     setGameState('idle');
@@ -260,9 +338,18 @@ export default function MultiplayerNumberSequenceGame({ matchId }: MultiplayerNu
           setUserAnswer={setUserAnswer}
           correctSum={currentRound.correct_sum}
           isCorrect={isCorrect}
+          currentRound={match.current_round}
+          completedRounds={0} // Not used in multiplayer
+          finalScore={0} // Not used in multiplayer
+          highScore={0} // Not used in multiplayer
+          timeLeft={timeLeft}
+          isTimerActive={isTimerActive}
+          timerStartTime={timerStartTime}
           onStart={() => {}} // No manual start in multiplayer
           onSubmit={submitAnswer}
+          onNextRound={() => {}} // Not used in multiplayer
           onReset={resetForNextRound}
+          onBackToMenu={() => router.push('/queue')}
           disabled={hasSubmitted || gameState === 'waiting'}
         />
 

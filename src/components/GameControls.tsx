@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { GameState } from '@/hooks/useGameLogic';
 
 interface GameControlsProps {
@@ -12,6 +13,9 @@ interface GameControlsProps {
   completedRounds: number;
   finalScore: number;
   highScore: number;
+  timeLeft: number;
+  isTimerActive: boolean;
+  timerStartTime: number;
   onStart: () => void;
   onSubmit: () => void;
   onNextRound: () => void;
@@ -30,6 +34,9 @@ export const GameControls = ({
   completedRounds,
   finalScore,
   highScore,
+  timeLeft,
+  isTimerActive,
+  timerStartTime,
   onStart,
   onSubmit,
   onNextRound,
@@ -37,6 +44,24 @@ export const GameControls = ({
   onBackToMenu,
   disabled = false
 }: GameControlsProps) => {
+  const timerBarRef = useRef<HTMLDivElement>(null);
+
+  // Handle timer bar animation
+  useEffect(() => {
+    if (isTimerActive && timerBarRef.current && timerStartTime > 0) {
+      const bar = timerBarRef.current;
+      // Reset to full width immediately
+      bar.style.transition = 'none';
+      bar.style.width = '100%';
+      
+      // Start animation after a tiny delay
+      setTimeout(() => {
+        bar.style.transition = 'width 5s linear';
+        bar.style.width = '0%';
+      }, 10);
+    }
+  }, [isTimerActive, timerStartTime]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserAnswer(e.target.value);
   };
@@ -74,6 +99,20 @@ export const GameControls = ({
           <h3 className="text-xl text-gray-600 mt-2">
             What&apos;s the sum of all numbers?
           </h3>
+          {isTimerActive && (
+            <div className="mt-6">
+              <div className="text-sm text-gray-600 mb-2">Time remaining</div>
+              <div className="w-64 h-3 bg-gray-200 rounded-full mx-auto overflow-hidden">
+                <div 
+                  ref={timerBarRef}
+                  className={`h-full rounded-full ${
+                    timeLeft <= 2 ? 'bg-red-500' : timeLeft <= 3 ? 'bg-orange-500' : 'bg-green-500'
+                  }`}
+                  style={{ width: '100%' }}
+                />
+              </div>
+            </div>
+          )}
         </div>
         <div className="mb-6">
           <input
