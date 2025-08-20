@@ -34,4 +34,19 @@ export const api = {
     });
     return response.json();
   },
+
+  // High Scores
+  getHighScore: async (playerId: string) => {
+    const response = await fetch(`${API_BASE}/high-score?playerId=${playerId}`);
+    return response.json();
+  },
+
+  saveHighScore: async (playerId: string, score: number) => {
+    const response = await fetch(`${API_BASE}/high-score`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId, score }),
+    });
+    return response.json();
+  },
 };
