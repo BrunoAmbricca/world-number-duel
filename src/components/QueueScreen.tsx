@@ -5,6 +5,7 @@ import { useSession } from '@/hooks/useSession';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { HelpButton } from './HelpButton';
+import { AppLayout } from './AppLayout';
 
 export default function QueueScreen() {
   const { session } = useSession();
@@ -29,24 +30,27 @@ export default function QueueScreen() {
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Please start a session to play multiplayer
-          </h2>
-          <button
-            onClick={() => router.push('/')}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Go Home
-          </button>
+      <AppLayout>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Please start a session to play multiplayer
+            </h2>
+            <button
+              onClick={() => router.push('/')}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Go Home
+            </button>
+          </div>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <AppLayout>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 mb-20">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -120,8 +124,9 @@ export default function QueueScreen() {
         </div>
       </div>
 
-      {/* Floating Help Button */}
-      <HelpButton />
-    </div>
+        {/* Floating Help Button */}
+        <HelpButton />
+      </div>
+    </AppLayout>
   );
 }
