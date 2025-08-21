@@ -137,7 +137,7 @@ export const LeaderboardTabs = () => {
               <div className="text-gray-600 text-lg">Loading leaderboard...</div>
             </div>
           ) : error ? (
-            <div className="flex items-center justify-center py-12 px-4">
+            <div className="flex items-center justify-center py-12 px-4 pb-24">
               <div className="text-red-600 text-center">
                 <p className="font-semibold text-lg">Error loading leaderboard</p>
                 <p className="text-sm mt-2">{error}</p>
@@ -150,7 +150,7 @@ export const LeaderboardTabs = () => {
               </div>
             </div>
           ) : !leaderboardData || leaderboardData.entries.length === 0 ? (
-            <div className="flex items-center justify-center py-12 px-4">
+            <div className="flex items-center justify-center py-12 px-4 pb-24">
               <div className="text-gray-500 text-center">
                 <p className="font-semibold text-lg">No entries yet</p>
                 <p className="text-sm mt-2">
@@ -162,7 +162,7 @@ export const LeaderboardTabs = () => {
               </div>
             </div>
           ) : (
-            <div className="p-4">
+            <div className="p-4 pb-24">
               {/* Leaderboard Entries */}
               <div className="space-y-3 max-w-2xl mx-auto">
                 {leaderboardData.entries.map((entry, index) => (
@@ -195,8 +195,8 @@ export const LeaderboardTabs = () => {
                 ))}
               </div>
 
-              {/* Footer Info */}
-              <div className="mt-8 text-center">
+              {/* Footer Info - with safe area padding */}
+              <div className="mt-8 text-center pb-4">
                 <div className="inline-flex items-center space-x-4 text-sm text-gray-600">
                   <span>Showing top {leaderboardData.entries.length} of {leaderboardData.total_entries} players</span>
                   <button

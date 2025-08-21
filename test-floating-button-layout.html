@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floating Button Layout Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for demonstration */
+        .test-section {
+            border: 2px dashed #e5e7eb;
+            margin-bottom: 20px;
+        }
+        
+        .floating-help-button {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: #2563eb;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 24px;
+            z-index: 40;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold text-center mb-8">Floating Button Layout Test</h1>
+        
+        <!-- Test 1: StartScreen Layout -->
+        <div class="test-section bg-white rounded-lg p-4 mb-6">
+            <h2 class="text-xl font-semibold mb-4">1. StartScreen Layout Test</h2>
+            <div class="h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-100 relative flex flex-col rounded-lg overflow-hidden">
+                <!-- Header -->
+                <button class="absolute top-4 right-4 h-12 w-12 bg-purple-600 text-white rounded-full">
+                    🏆
+                </button>
+                
+                <!-- Content with proper bottom spacing -->
+                <div class="flex-1 flex flex-col px-4 py-8 overflow-y-auto">
+                    <div class="w-full max-w-lg mx-auto flex-1 flex flex-col">
+                        <div class="text-center mb-8 pt-12">
+                            <h1 class="text-3xl font-bold text-gray-800 mb-4">Number Sequence Game</h1>
+                            <p class="text-gray-600">Challenge yourself or compete against other players!</p>
+                        </div>
+                        
+                        <!-- Game mode sections with bottom padding -->
+                        <div class="flex-1 flex flex-col gap-6 mb-24 pb-4">
+                            <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                                <div class="bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl h-32 mb-4 flex items-center justify-center">
+                                    <div class="text-white text-xl font-bold">Single Player</div>
+                                </div>
+                                <button class="w-full bg-blue-600 text-white font-bold text-lg py-3 px-6 rounded-xl">
+                                    Start Singleplayer
+                                </button>
+                            </div>
+                            
+                            <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                                <div class="bg-gradient-to-br from-green-400 to-green-600 rounded-xl h-32 mb-4 flex items-center justify-center">
+                                    <div class="text-white text-xl font-bold">Multiplayer</div>
+                                </div>
+                                <button class="w-full bg-green-600 text-white font-bold text-lg py-3 px-6 rounded-xl">
+                                    Find Match
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test 2: QueueScreen Layout -->
+        <div class="test-section bg-white rounded-lg p-4 mb-6">
+            <h2 class="text-xl font-semibold mb-4">2. QueueScreen Layout Test</h2>
+            <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4 rounded-lg">
+                <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8 mb-20">
+                    <div class="text-center">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Multiplayer Queue</h1>
+                        <p class="text-gray-600 mb-8">Find an opponent for a number sum challenge!</p>
+                        <div class="space-y-4">
+                            <button class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold">
+                                Join Queue
+                            </button>
+                            <button class="w-full px-6 py-3 bg-gray-300 text-gray-700 rounded-lg">
+                                Back to Home
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test 3: GameControls Layout -->
+        <div class="test-section bg-white rounded-lg p-4 mb-6">
+            <h2 class="text-xl font-semibold mb-4">3. GameControls Layout Test</h2>
+            <div class="h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col rounded-lg overflow-hidden">
+                <!-- Game content -->
+                <div class="flex-1 flex flex-col">
+                    <div class="flex flex-col h-full">
+                        <div class="flex-1 flex flex-col items-center justify-center text-center px-6">
+                            <h1 class="text-4xl font-bold mb-6 text-gray-800">Game Over!</h1>
+                            <div class="bg-gray-50 rounded-xl p-6 mb-6 max-w-sm w-full">
+                                <p class="text-2xl font-bold mb-4 text-gray-700">You reached Round 5</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Bottom Section with proper padding -->
+                        <div class="p-6 pb-24 space-y-3">
+                            <button class="w-full bg-blue-600 text-white font-bold text-xl py-4 px-6 rounded-xl">
+                                Play Again
+                            </button>
+                            <button class="w-full bg-gray-600 text-white font-bold text-xl py-4 px-6 rounded-xl">
+                                Back to Main Menu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test 4: Mobile Responsiveness -->
+        <div class="test-section bg-white rounded-lg p-4">
+            <h2 class="text-xl font-semibold mb-4">4. Mobile Responsiveness Test</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Mobile View Simulator -->
+                <div class="border-2 border-gray-300 rounded-lg overflow-hidden" style="width: 320px; height: 568px;">
+                    <div class="h-full bg-gradient-to-br from-blue-50 to-indigo-100 relative flex flex-col">
+                        <div class="text-center p-4">
+                            <h3 class="font-bold">Mobile (320px)</h3>
+                        </div>
+                        <div class="flex-1 flex flex-col justify-end">
+                            <div class="p-4 pb-24 space-y-3">
+                                <button class="w-full bg-blue-600 text-white py-3 rounded-lg">Button 1</button>
+                                <button class="w-full bg-green-600 text-white py-3 rounded-lg">Button 2</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tablet View Simulator -->
+                <div class="border-2 border-gray-300 rounded-lg overflow-hidden" style="width: 768px; height: 400px;">
+                    <div class="h-full bg-gradient-to-br from-blue-50 to-indigo-100 relative flex flex-col">
+                        <div class="text-center p-4">
+                            <h3 class="font-bold">Tablet (768px)</h3>
+                        </div>
+                        <div class="flex-1 flex flex-col justify-end">
+                            <div class="p-6 pb-24 space-y-3">
+                                <button class="w-full bg-blue-600 text-white py-4 rounded-xl">Button 1</button>
+                                <button class="w-full bg-green-600 text-white py-4 rounded-xl">Button 2</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Desktop View Info -->
+                <div class="border-2 border-gray-300 rounded-lg p-4">
+                    <h3 class="font-bold mb-2">Desktop (1200px+)</h3>
+                    <p class="text-sm text-gray-600">
+                        On desktop screens, the floating button has plenty of space and won't interfere with the main content.
+                        The pb-24 (96px) bottom padding ensures at least 60px safe space around the floating button.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Safe Area Visualization -->
+        <div class="test-section bg-white rounded-lg p-4">
+            <h2 class="text-xl font-semibold mb-4">5. Safe Area Visualization</h2>
+            <div class="relative bg-gray-200 h-96 rounded-lg overflow-hidden">
+                <div class="absolute inset-0 flex items-end justify-end p-6">
+                    <!-- Safe area visualization -->
+                    <div class="w-32 h-32 border-2 border-red-500 border-dashed rounded-lg flex items-center justify-center">
+                        <div class="text-center text-sm text-red-600">
+                            <div>Safe Area</div>
+                            <div>96px × 96px</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Simulated floating button -->
+                <div class="absolute bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-2xl shadow-lg">
+                    ?
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">
+                The red dashed area shows the safe zone where content should avoid being placed. 
+                The floating button (blue circle) sits within this area, with proper spacing from edges.
+            </p>
+        </div>
+    </div>
+    
+    <!-- Floating Help Button -->
+    <div class="floating-help-button">?</div>
+    
+    <script>
+        // Add some interactivity for testing
+        document.querySelector('.floating-help-button').addEventListener('click', function() {
+            alert('Help button clicked! Notice how it doesn\'t interfere with other buttons.');
+        });
+        
+        // Highlight spacing on hover
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.05)';
+            });
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

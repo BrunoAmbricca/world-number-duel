@@ -63,7 +63,7 @@ export const GameControls = ({
         </div>
         
         {/* Bottom Section - Action Button */}
-        <div className="p-6 pb-8">
+        <div className="p-6 pb-24">
           <button
             onClick={onStart}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl py-4 px-6 rounded-xl transition-colors shadow-lg"
@@ -103,7 +103,7 @@ export const GameControls = ({
         </div>
         
         {/* Bottom Section - Submit Button */}
-        <div className="p-6 pb-8">
+        <div className="p-6 pb-24">
           <button
             onClick={onSubmit}
             disabled={!userAnswer.trim() || disabled}
@@ -135,7 +135,7 @@ export const GameControls = ({
         </div>
         
         {/* Bottom Section - Action Buttons */}
-        <div className="p-6 pb-8 space-y-3">
+        <div className="p-6 pb-24 space-y-3">
           {isCorrect && (
             <button
               onClick={onNextRound}
@@ -186,7 +186,7 @@ export const GameControls = ({
         </div>
         
         {/* Bottom Section - Action Buttons */}
-        <div className="p-6 pb-8 space-y-3">
+        <div className="p-6 pb-24 space-y-3">
           <button
             onClick={onReset}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl py-4 px-6 rounded-xl transition-colors shadow-lg"

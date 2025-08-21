@@ -52,8 +52,8 @@ export const StartScreen = () => {
             </p>
           </div>
 
-          {/* Game mode sections */}
-          <div className="flex-1 flex flex-col gap-6 mb-8">
+          {/* Game mode sections - with bottom padding to avoid floating button overlap */}
+          <div className="flex-1 flex flex-col gap-6 mb-24 pb-4">
             {/* Singleplayer Section */}
             <div className="bg-white rounded-2xl shadow-xl p-6 text-center">
               {/* Placeholder background */}
