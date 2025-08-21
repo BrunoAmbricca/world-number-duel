@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Navigation Bar Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Test styles */
+        .test-section {
+            border: 2px dashed #e5e7eb;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .mobile-frame {
+            width: 375px;
+            height: 667px;
+            border: 8px solid #333;
+            border-radius: 25px;
+            overflow: hidden;
+            background: #000;
+            padding: 8px;
+        }
+        
+        .mobile-screen {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 17px;
+            overflow: hidden;
+            position: relative;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">Top Navigation Bar Test</h1>
+        
+        <!-- Desktop Version -->
+        <div class="test-section bg-white rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Desktop Version (1200px+)</h2>
+            <div class="border border-gray-300 rounded-lg overflow-hidden">
+                <!-- Top Navigation Bar -->
+                <nav class="w-full h-14 bg-white shadow-md border-b border-gray-200">
+                    <div class="flex items-center justify-between px-4 h-full max-w-7xl mx-auto">
+                        <!-- Leaderboard Button (Left) -->
+                        <button class="flex items-center justify-center min-w-[48px] min-h-[48px] w-12 h-12 rounded-full bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-600 transition-all duration-200 transform hover:scale-105">
+                            🏆
+                        </button>
+
+                        <!-- Coin Counter (Center) -->
+                        <div class="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-amber-50 px-4 py-2 rounded-full border border-yellow-200 shadow-sm">
+                            <div class="w-6 h-6 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0">
+                                W
+                            </div>
+                            <span class="font-semibold text-lg text-gray-800 min-w-0">
+                                1,250
+                            </span>
+                        </div>
+
+                        <!-- Settings Button (Right) -->
+                        <button class="flex items-center justify-center min-w-[48px] min-h-[48px] w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-600 transition-all duration-200 transform hover:scale-105">
+                            ⚙️
+                        </button>
+                    </div>
+                </nav>
+                
+                <!-- Content Area -->
+                <div class="h-96 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+                    <div class="text-center">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Game Content Area</h3>
+                        <p class="text-gray-600">Main content goes here with proper spacing from the navigation bar</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Version -->
+        <div class="test-section bg-white rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Mobile Version (375px)</h2>
+            <div class="flex justify-center">
+                <div class="mobile-frame">
+                    <div class="mobile-screen">
+                        <!-- Top Navigation Bar -->
+                        <nav class="w-full h-14 bg-white shadow-md border-b border-gray-200">
+                            <div class="flex items-center justify-between px-3 h-full">
+                                <!-- Leaderboard Button (Left) -->
+                                <button class="flex items-center justify-center min-w-[48px] min-h-[48px] w-12 h-12 rounded-full bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-600 transition-all duration-200 transform hover:scale-105">
+                                    🏆
+                                </button>
+
+                                <!-- Coin Counter (Center) - Mobile optimized -->
+                                <div class="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-amber-50 px-3 py-2 rounded-full border border-yellow-200 shadow-sm">
+                                    <div class="w-5 h-5 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm flex-shrink-0">
+                                        W
+                                    </div>
+                                    <span class="font-semibold text-base text-gray-800 min-w-0">
+                                        1,250
+                                    </span>
+                                </div>
+
+                                <!-- Settings Button (Right) -->
+                                <button class="flex items-center justify-center min-w-[48px] min-h-[48px] w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-600 transition-all duration-200 transform hover:scale-105">
+                                    ⚙️
+                                </button>
+                            </div>
+                        </nav>
+                        
+                        <!-- Content Area -->
+                        <div class="h-full bg-gradient-to-br from-blue-50 to-indigo-100 pt-14 flex flex-col">
+                            <div class="flex-1 flex items-center justify-center px-4">
+                                <div class="text-center">
+                                    <h3 class="text-lg font-bold text-gray-800 mb-2">Mobile Layout</h3>
+                                    <p class="text-sm text-gray-600">Content properly spaced with 56px top padding</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Simulated floating help button -->
+                            <div class="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-2xl shadow-lg">
+                                ?
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Touch Target Test -->
+        <div class="test-section bg-white rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Touch Target Test (48x48px minimum)</h2>
+            <div class="flex flex-wrap gap-4 items-center justify-center">
+                <!-- Touch targets with visible areas -->
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full border-2 border-purple-300 border-dashed flex items-center justify-center text-purple-600 mb-2">
+                        🏆
+                    </div>
+                    <span class="text-xs text-gray-600">48x48px</span>
+                </div>
+                
+                <div class="text-center">
+                    <div class="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-full border border-yellow-200">
+                        <div class="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-sm">W</div>
+                        <span class="font-semibold">1,250</span>
+                    </div>
+                    <span class="text-xs text-gray-600 mt-2 block">Adaptive width</span>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-gray-100 rounded-full border-2 border-gray-300 border-dashed flex items-center justify-center text-gray-600 mb-2">
+                        ⚙️
+                    </div>
+                    <span class="text-xs text-gray-600">48x48px</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Responsive Breakdown -->
+        <div class="test-section bg-white rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Responsive Breakdown</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-blue-900 mb-2">Mobile (320-767px)</h3>
+                    <ul class="text-sm text-blue-700 space-y-1">
+                        <li>• 48x48px touch targets</li>
+                        <li>• 12px horizontal padding</li>
+                        <li>• Smaller icons (20px)</li>
+                        <li>• Compact coin counter</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-green-900 mb-2">Tablet (768-1023px)</h3>
+                    <ul class="text-sm text-green-700 space-y-1">
+                        <li>• Same touch targets</li>
+                        <li>• 16px horizontal padding</li>
+                        <li>• Medium icons (24px)</li>
+                        <li>• Full coin display</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-purple-900 mb-2">Desktop (1024px+)</h3>
+                    <ul class="text-sm text-purple-700 space-y-1">
+                        <li>• Hover effects enabled</li>
+                        <li>• Maximum 7xl container</li>
+                        <li>• Full icon size (24px)</li>
+                        <li>• Enhanced shadows</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Z-Index Test -->
+        <div class="test-section bg-white rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Z-Index Layer Test</h2>
+            <div class="relative h-32 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg overflow-hidden">
+                <!-- Background layer -->
+                <div class="absolute inset-0 bg-blue-100 flex items-center justify-center">
+                    <span class="text-gray-600">Background Content (z-0)</span>
+                </div>
+                
+                <!-- Navigation layer -->
+                <div class="absolute top-0 left-0 right-0 h-14 bg-white shadow-md border-b border-gray-200 flex items-center justify-center" style="z-index: 50;">
+                    <span class="text-gray-800 font-semibold">Navigation Bar (z-50)</span>
+                </div>
+                
+                <!-- Help button layer -->
+                <div class="absolute bottom-4 right-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold" style="z-index: 40;">
+                    ?
+                </div>
+                
+                <!-- Settings modal layer (simulated) -->
+                <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="z-index: 50; display: none;" id="modal-overlay">
+                    <div class="bg-white rounded-lg p-6 shadow-xl">
+                        <h3 class="font-bold mb-2">Settings Modal (z-50)</h3>
+                        <p class="text-sm text-gray-600">This would overlay everything</p>
+                    </div>
+                </div>
+            </div>
+            <button onclick="document.getElementById('modal-overlay').style.display = document.getElementById('modal-overlay').style.display === 'flex' ? 'none' : 'flex'" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
+                Toggle Modal Demo
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Add interactivity for demonstration
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', function() {
+                if (!this.onclick) { // Don't interfere with modal toggle
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                }
+            });
+        });
+
+        // Simulate coin updates
+        let coins = 1250;
+        setInterval(() => {
+            coins += Math.floor(Math.random() * 10) + 1;
+            document.querySelectorAll('span').forEach(span => {
+                if (span.textContent.includes(',')) {
+                    span.textContent = coins.toLocaleString();
+                }
+            });
+        }, 3000);
+
+        console.log('Navigation bar test loaded successfully!');
+    </script>
+</body>
+</html>

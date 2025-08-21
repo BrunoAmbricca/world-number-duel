@@ -9,6 +9,8 @@ import { api } from '@/lib/api';
 import { SequenceDisplay } from './SequenceDisplay';
 import { GameControls } from './GameControls';
 import { HelpButton } from './HelpButton';
+import { AppLayout } from './AppLayout';
+import { useCoins } from '@/hooks/useCoins';
 
 interface NumberSequenceGameProps {
   session: GameSession;
@@ -17,6 +19,7 @@ interface NumberSequenceGameProps {
 export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
   const router = useRouter();
   const { endSession } = useSession();
+  const { addCoins } = useCoins();
   const [highScore, setHighScore] = useState<number>(0);
   const [isLoadingScore, setIsLoadingScore] = useState<boolean>(true);
 
@@ -67,6 +70,16 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
           if (response.isNewRecord) {
             setHighScore(finalScore);
           }
+
+          // Reward coins based on performance
+          const baseReward = finalScore * 10; // 10 coins per round completed
+          const bonusReward = response.isNewRecord ? 50 : 0; // Bonus for new record
+          const totalReward = baseReward + bonusReward;
+          
+          if (totalReward > 0) {
+            addCoins(totalReward);
+            console.log(`Awarded ${totalReward} coins (${baseReward} base + ${bonusReward} bonus)`);
+          }
         } catch (error) {
           console.error('Failed to save high score:', error);
         }
@@ -74,7 +87,7 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
 
       saveScore();
     }
-  }, [gameState, finalScore, session.playerId]);
+  }, [gameState, finalScore, session.playerId, addCoins]);
 
   const handleEndSession = () => {
     endSession();
@@ -94,7 +107,8 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
+    <AppLayout showNavBar={false}>
+      <div className="h-screen w-full flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header Section */}
       <div className="flex justify-between items-center p-4 bg-white/80 backdrop-blur-sm border-b border-gray-200">
         <div className="text-base font-semibold text-gray-700">
@@ -148,8 +162,9 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
         />
       </div>
 
-      {/* Floating Help Button */}
-      <HelpButton />
-    </div>
+        {/* Floating Help Button */}
+        <HelpButton />
+      </div>
+    </AppLayout>
   );
 };
