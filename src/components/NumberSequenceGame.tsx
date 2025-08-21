@@ -8,6 +8,7 @@ import { GameSession } from '@/lib/session';
 import { api } from '@/lib/api';
 import { SequenceDisplay } from './SequenceDisplay';
 import { GameControls } from './GameControls';
+import { HelpButton } from './HelpButton';
 
 interface NumberSequenceGameProps {
   session: GameSession;
@@ -93,33 +94,39 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl">
-        <div className="flex justify-between items-center mb-6">
-          <div className="text-lg font-semibold text-gray-700">
-            Playing as: <span className="text-blue-600">{session.playerId}</span>
-            {highScore > 0 && (
-              <div className="text-sm text-gray-500 mt-1">
-                Best Score: {highScore}
-              </div>
-            )}
-          </div>
-          <button
-            onClick={handleEndSession}
-            className="text-gray-500 hover:text-gray-700 text-sm underline transition-colors"
-          >
-            End Session
-          </button>
+    <div className="h-screen w-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Header Section */}
+      <div className="flex justify-between items-center p-4 bg-white/80 backdrop-blur-sm border-b border-gray-200">
+        <div className="text-base font-semibold text-gray-700">
+          <span className="text-blue-600">{session.playerId}</span>
+          {highScore > 0 && (
+            <div className="text-sm text-gray-500">
+              Best: {highScore}
+            </div>
+          )}
         </div>
+        <button
+          onClick={handleEndSession}
+          className="text-gray-500 hover:text-gray-700 text-sm underline transition-colors"
+        >
+          End Session
+        </button>
+      </div>
 
+      {/* Top Section - Sequence Display and Timer */}
+      <div className="flex-1 flex flex-col">
         <SequenceDisplay
           sequence={sequence}
           currentIndex={currentNumberIndex}
           isDisplaying={gameState === 'displaying'}
           onNext={nextNumber}
           onFinish={finishSequence}
+          timeLeft={timeLeft}
+          isTimerActive={isTimerActive}
+          timerStartTime={timerStartTime}
         />
         
+        {/* Middle and Bottom Section - Game Controls */}
         <GameControls
           gameState={gameState}
           userAnswer={userAnswer}
@@ -140,6 +147,9 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
           onBackToMenu={handleBackToMenu}
         />
       </div>
+
+      {/* Floating Help Button */}
+      <HelpButton />
     </div>
   );
 };

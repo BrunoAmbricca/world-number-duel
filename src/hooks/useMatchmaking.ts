@@ -139,17 +139,18 @@ export function useMatchmaking(playerId?: string) {
       try {
         setState(prev => ({ ...prev, pollCount: (prev.pollCount || 0) + 1 }));
         
-        // Check if player is still in queue (if not, they've been matched)
+        // Check if player is still in queue with waiting status
         const supabase = createClient();
         const { data } = await supabase.from('matchmaking_queue')
           .select('*')
           .eq('player_id', playerId)
+          .eq('status', 'waiting')
           .single();
 
         if (!data) {
-          console.log('🎯 Polling detected: Player no longer in queue, checking for match...');
+          console.log('🎯 Polling detected: Player no longer in waiting queue, checking for match...');
           
-          // Player not in queue anymore, check for active matches
+          // Player not in waiting queue anymore, check for active matches
           const { data: matches } = await supabase
             .from('matches')
             .select('*')
@@ -170,6 +171,15 @@ export function useMatchmaking(playerId?: string) {
               matchId: match.id,
               opponentId: opponentId,
             }));
+          } else {
+            // No active match found, player might have left queue or there was an error
+            console.log('⚠️ Player not in queue and no active match found');
+            setState(prev => ({
+              ...prev,
+              isInQueue: false,
+              isSearching: false,
+              error: 'Lost connection to matchmaking. Please try again.',
+            }));
           }
         }
       } catch (error) {
@@ -177,11 +187,17 @@ export function useMatchmaking(playerId?: string) {
       }
     }, 3000); // Poll every 3 seconds
 
-    // Stop polling after 30 seconds
+    // Stop polling after 60 seconds (increased timeout for better reliability)
     const timeout = setTimeout(() => {
       clearInterval(pollInterval);
-      console.log('⏰ Polling timeout reached');
-    }, 30000);
+      console.log('⏰ Polling timeout reached - stopping search');
+      setState(prev => ({
+        ...prev,
+        isInQueue: false,
+        isSearching: false,
+        error: 'Matchmaking timeout. Please try again.',
+      }));
+    }, 60000);
 
     return () => {
       clearInterval(pollInterval);

@@ -4,6 +4,7 @@ import { useMatchmaking } from '@/hooks/useMatchmaking';
 import { useSession } from '@/hooks/useSession';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { HelpButton } from './HelpButton';
 
 export default function QueueScreen() {
   const { session } = useSession();
@@ -118,6 +119,9 @@ export default function QueueScreen() {
           )}
         </div>
       </div>
+
+      {/* Floating Help Button */}
+      <HelpButton />
     </div>
   );
 }

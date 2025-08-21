@@ -22,20 +22,23 @@ export interface LeaderboardResponse {
 const LEADERBOARD_TABS = [
   {
     id: 'weekly' as LeaderboardType,
-    label: 'Weekly Wins',
-    description: 'Most multiplayer wins this week',
+    label: 'Weekly Winners',
+    shortLabel: 'Weekly',
+    description: 'Multiplayer Weekly Winners (reset weekly at Monday 00 UTC)',
     scoreLabel: 'Wins',
   },
   {
     id: 'daily' as LeaderboardType,
-    label: 'Daily Wins',
-    description: 'Most multiplayer wins today',
+    label: 'Daily Winners',
+    shortLabel: 'Daily',
+    description: 'Multiplayer Daily Winners (reset daily at 00 UTC)',
     scoreLabel: 'Wins',
   },
   {
     id: 'singleplayer' as LeaderboardType,
-    label: 'Best Singleplayer',
-    description: 'Highest rounds reached',
+    label: 'Highest Round',
+    shortLabel: 'Singleplayer',
+    description: 'Singleplayer Highest Round (historical)',
     scoreLabel: 'Round',
   },
 ] as const;
@@ -45,7 +48,6 @@ export const LeaderboardTabs = () => {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   const fetchLeaderboard = async (type: LeaderboardType) => {
     setIsLoading(true);
@@ -59,7 +61,6 @@ export const LeaderboardTabs = () => {
       }
       
       setLeaderboardData(data);
-      setLastRefresh(new Date());
     } catch (err) {
       console.error('Failed to fetch leaderboard:', err);
       setError(err instanceof Error ? err.message : 'Failed to load leaderboard');
@@ -86,10 +87,6 @@ export const LeaderboardTabs = () => {
     return playerId;
   };
 
-  const formatTimestamp = (timestamp: string): string => {
-    return new Date(timestamp).toLocaleString();
-  };
-
   const getRankDisplay = (rank: number): string => {
     if (rank === 1) return '🥇';
     if (rank === 2) return '🥈';
@@ -100,79 +97,63 @@ export const LeaderboardTabs = () => {
   const currentTab = LEADERBOARD_TABS.find(tab => tab.id === activeTab);
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+    <div className="h-full flex flex-col">
+      {/* Mobile-First Tab Navigation */}
+      <div className="bg-white border-b border-gray-200">
+        <nav className="flex" aria-label="Tabs">
           {LEADERBOARD_TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`flex-1 py-4 px-2 text-center border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600 bg-blue-50'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               }`}
               aria-current={activeTab === tab.id ? 'page' : undefined}
             >
-              {tab.label}
+              <div className="truncate">
+                <span className="sm:hidden">{tab.shortLabel}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
+              </div>
             </button>
           ))}
         </nav>
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">
-                {currentTab?.label}
-              </h2>
-              <p className="text-sm text-gray-600 mt-1">
-                {currentTab?.description}
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-xs text-gray-500">
-                Updated: {formatTimestamp(lastRefresh.toISOString())}
-              </div>
-              <button
-                onClick={handleRefresh}
-                disabled={isLoading}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Refreshing...' : 'Refresh'}
-              </button>
-            </div>
-          </div>
+      <div className="flex-1 flex flex-col bg-white">
+        {/* Current tab description - mobile optimized */}
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <p className="text-sm text-gray-600 text-center">
+            {currentTab?.description}
+          </p>
         </div>
 
-        {/* Content */}
-        <div className="px-6 py-4">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-gray-600">Loading leaderboard...</div>
+            <div className="flex items-center justify-center py-12">
+              <div className="text-gray-600 text-lg">Loading leaderboard...</div>
             </div>
           ) : error ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-red-600">
-                <p className="font-medium">Error loading leaderboard</p>
-                <p className="text-sm mt-1">{error}</p>
+            <div className="flex items-center justify-center py-12 px-4">
+              <div className="text-red-600 text-center">
+                <p className="font-semibold text-lg">Error loading leaderboard</p>
+                <p className="text-sm mt-2">{error}</p>
                 <button
                   onClick={handleRefresh}
-                  className="mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
                 >
                   Try again
                 </button>
               </div>
             </div>
           ) : !leaderboardData || leaderboardData.entries.length === 0 ? (
-            <div className="flex items-center justify-center py-8">
+            <div className="flex items-center justify-center py-12 px-4">
               <div className="text-gray-500 text-center">
-                <p className="font-medium">No entries yet</p>
-                <p className="text-sm mt-1">
+                <p className="font-semibold text-lg">No entries yet</p>
+                <p className="text-sm mt-2">
                   {activeTab === 'singleplayer' 
                     ? 'Play some single-player games to appear here!'
                     : 'Play some multiplayer matches to appear here!'
@@ -181,53 +162,55 @@ export const LeaderboardTabs = () => {
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
-              {/* Header Row */}
-              <div className="grid grid-cols-3 gap-4 text-sm font-medium text-gray-500 border-b pb-2">
-                <div>Rank & Player</div>
-                <div className="text-center">{currentTab?.scoreLabel}</div>
-                {activeTab === 'singleplayer' && <div className="text-right">Last Updated</div>}
-                {activeTab !== 'singleplayer' && <div></div>}
+            <div className="p-4">
+              {/* Leaderboard Entries */}
+              <div className="space-y-3 max-w-2xl mx-auto">
+                {leaderboardData.entries.map((entry, index) => (
+                  <div
+                    key={`${entry.player_id}-${entry.rank}`}
+                    className={`flex items-center justify-between p-4 rounded-xl transition-colors ${
+                      index < 3 ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50 hover:bg-gray-100'
+                    }`}
+                  >
+                    {/* Left side - Rank and Player */}
+                    <div className="flex items-center space-x-4 flex-1 min-w-0">
+                      <span className="text-2xl md:text-3xl font-bold min-w-[3rem] text-center">
+                        {getRankDisplay(entry.rank)}
+                      </span>
+                      <span className="font-semibold text-gray-900 truncate text-lg md:text-xl">
+                        {formatPlayerName(entry.player_id)}
+                      </span>
+                    </div>
+                    
+                    {/* Right side - Score */}
+                    <div className="text-right ml-4">
+                      <div className="font-bold text-2xl md:text-3xl text-blue-600">
+                        {entry.score}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {currentTab?.scoreLabel}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {/* Leaderboard Entries */}
-              {leaderboardData.entries.map((entry, index) => (
-                <div
-                  key={`${entry.player_id}-${entry.rank}`}
-                  className={`grid grid-cols-3 gap-4 py-3 px-2 rounded-lg transition-colors ${
-                    index < 3 ? 'bg-yellow-50' : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-lg font-medium min-w-[2rem]">
-                      {getRankDisplay(entry.rank)}
-                    </span>
-                    <span className="font-medium text-gray-900 truncate">
-                      {formatPlayerName(entry.player_id)}
-                    </span>
-                  </div>
-                  <div className="text-center font-bold text-lg text-blue-600">
-                    {entry.score}
-                  </div>
-                  <div className="text-right text-sm text-gray-500">
-                    {activeTab === 'singleplayer' && entry.last_updated && (
-                      formatTimestamp(entry.last_updated)
-                    )}
-                  </div>
+              {/* Footer Info */}
+              <div className="mt-8 text-center">
+                <div className="inline-flex items-center space-x-4 text-sm text-gray-600">
+                  <span>Showing top {leaderboardData.entries.length} of {leaderboardData.total_entries} players</span>
+                  <button
+                    onClick={handleRefresh}
+                    disabled={isLoading}
+                    className="text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? 'Refreshing...' : 'Refresh'}
+                  </button>
                 </div>
-              ))}
+              </div>
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        {leaderboardData && leaderboardData.entries.length > 0 && (
-          <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-            <div className="text-sm text-gray-600 text-center">
-              Showing top {leaderboardData.entries.length} of {leaderboardData.total_entries} players
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

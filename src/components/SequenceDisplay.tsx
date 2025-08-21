@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { formatNumber } from '@/utils/gameHelpers';
 
 interface SequenceDisplayProps {
@@ -9,6 +9,9 @@ interface SequenceDisplayProps {
   isDisplaying: boolean;
   onNext: () => void;
   onFinish: () => void;
+  timeLeft: number;
+  isTimerActive: boolean;
+  timerStartTime: number;
 }
 
 export const SequenceDisplay = ({ 
@@ -16,8 +19,13 @@ export const SequenceDisplay = ({
   currentIndex, 
   isDisplaying, 
   onNext, 
-  onFinish 
+  onFinish,
+  timeLeft,
+  isTimerActive,
+  timerStartTime
 }: SequenceDisplayProps) => {
+  const timerBarRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!isDisplaying) return;
 
@@ -32,18 +40,55 @@ export const SequenceDisplay = ({
     return () => clearTimeout(timer);
   }, [currentIndex, sequence.length, isDisplaying, onNext, onFinish]);
 
-  if (!isDisplaying) return null;
+  // Handle timer bar animation
+  useEffect(() => {
+    if (isTimerActive && timerBarRef.current && timerStartTime > 0) {
+      const bar = timerBarRef.current;
+      bar.style.transition = 'none';
+      bar.style.width = '100%';
+      
+      setTimeout(() => {
+        bar.style.transition = 'width 5s linear';
+        bar.style.width = '0%';
+      }, 10);
+    }
+  }, [isTimerActive, timerStartTime]);
+
+  if (!isDisplaying && !isTimerActive) return null;
 
   return (
-    <div className="flex flex-col items-center justify-center h-64">
-      <div className="text-8xl font-bold text-blue-600 mb-4 transition-all duration-300">
-        {currentIndex >= 0 && currentIndex < sequence.length
-          ? formatNumber(sequence[currentIndex])
-          : ''}
-      </div>
-      <div className="text-gray-500">
-        {currentIndex + 1} / {sequence.length}
-      </div>
+    <div className="flex-1 flex flex-col">
+      {/* Sequence Display Area */}
+      {isDisplaying && (
+        <div className="flex-1 flex flex-col items-center justify-center px-4">
+          <div className="text-6xl md:text-8xl font-bold text-blue-600 mb-4 transition-all duration-300 text-center">
+            {currentIndex >= 0 && currentIndex < sequence.length
+              ? formatNumber(sequence[currentIndex])
+              : ''}
+          </div>
+          <div className="text-lg text-gray-500 mb-4">
+            {currentIndex + 1} / {sequence.length}
+          </div>
+        </div>
+      )}
+
+      {/* Timer Bar Section */}
+      {isTimerActive && (
+        <div className="px-4 pb-6">
+          <div className="text-center mb-3">
+            <div className="text-sm font-medium text-gray-600">Time remaining</div>
+          </div>
+          <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+            <div 
+              ref={timerBarRef}
+              className={`h-full rounded-full transition-colors ${
+                timeLeft <= 2 ? 'bg-red-500' : timeLeft <= 3 ? 'bg-orange-500' : 'bg-green-500'
+              }`}
+              style={{ width: '100%' }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

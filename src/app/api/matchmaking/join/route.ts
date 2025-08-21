@@ -15,101 +15,87 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Player ID required' }, { status: 400 });
     }
 
-    // Check if player is already in queue
-    const { data: existingEntry } = await supabase
-      .from('matchmaking_queue')
-      .select('*')
-      .eq('player_id', playerId)
-      .single();
+    // The atomic_matchmaking function now handles all checks internally
+    // This eliminates the need for separate checks and prevents race conditions
 
-    if (existingEntry) {
-      return NextResponse.json({ message: 'Already in queue', queueId: existingEntry.id });
+    // Use a database transaction to ensure atomic matchmaking
+    const { data: matchResult, error: transactionError } = await supabase.rpc('atomic_matchmaking', {
+      new_player_id: playerId
+    });
+
+    if (transactionError) {
+      console.error('❌ Transaction error:', transactionError);
+      return NextResponse.json({ error: transactionError.message }, { status: 500 });
     }
 
-    // Add player to queue
-    const { data: queueEntry, error: queueError } = await supabase
-      .from('matchmaking_queue')
-      .insert({ player_id: playerId })
-      .select()
-      .single();
-
-    if (queueError) {
-      return NextResponse.json({ error: queueError.message }, { status: 500 });
+    if (!matchResult || matchResult.length === 0) {
+      return NextResponse.json({ error: 'Unexpected database response' }, { status: 500 });
     }
 
-    // Try to find a match
-    const { data: waitingPlayers } = await supabase
-      .from('matchmaking_queue')
-      .select('*')
-      .neq('player_id', playerId)
-      .order('joined_at', { ascending: true })
-      .limit(1);
+    const result = matchResult[0];
 
-    if (waitingPlayers && waitingPlayers.length > 0) {
-      const opponent = waitingPlayers[0];
-      
-      // Create match
-      const { data: match, error: matchError } = await supabase
-        .from('matches')
-        .insert({
-          player1_id: opponent.player_id,
-          player2_id: playerId,
-          status: 'active',
-          current_turn: opponent.player_id // First player goes first
-        })
-        .select()
-        .single();
-
-      if (matchError) {
-        return NextResponse.json({ error: matchError.message }, { status: 500 });
-      }
-
-      // Remove both players from queue
-      await supabase
-        .from('matchmaking_queue')
-        .delete()
-        .in('player_id', [playerId, opponent.player_id]);
-
-      // Generate first round using the same logic as single-player
-      const sequence = generateRandomSequence(5); // Same as single-player: 5 numbers
-      const correctSum = calculateSum(sequence);   // Calculate the actual sum
-
-      const { error: roundError } = await supabase
-        .from('match_rounds')
-        .insert({
-          match_id: match.id,
-          round_number: 1,
-          sequence,
-          correct_sum: correctSum
+    if (result.matched) {
+      if (result.already_active) {
+        // Player already has an active match
+        console.log(`🔄 Player ${playerId} already has active match ${result.match_id}`);
+        return NextResponse.json({
+          matched: true,
+          matchId: result.match_id,
+          opponentId: result.opponent_id,
+          message: 'Already in active match'
         });
+      } else {
+        // New match was created, generate first round
+        console.log(`🎯 New match created: ${result.match_id} (${result.opponent_id} vs ${playerId})`);
+        const sequence = generateRandomSequence(5);
+        const correctSum = calculateSum(sequence);
 
-      if (roundError) {
-        return NextResponse.json({ error: roundError.message }, { status: 500 });
-      }
+        const { error: roundError } = await supabase
+          .from('match_rounds')
+          .insert({
+            match_id: result.match_id,
+            round_number: 1,
+            sequence,
+            correct_sum: correctSum
+          });
 
-      // Notify the first player via Pusher
-      try {
-        await pusherServer.trigger(`player-${opponent.player_id}`, 'match-found', {
-          matchId: match.id,
-          opponentId: playerId
+        if (roundError) {
+          console.error('❌ Failed to create round:', roundError);
+          // Clean up the match if round creation fails
+          await supabase
+            .from('matches')
+            .update({ status: 'abandoned' })
+            .eq('id', result.match_id);
+          
+          return NextResponse.json({ error: roundError.message }, { status: 500 });
+        }
+
+        // Notify the first player via Pusher (only for new matches, not existing ones)
+        try {
+          await pusherServer.trigger(`player-${result.opponent_id}`, 'match-found', {
+            matchId: result.match_id,
+            opponentId: playerId
+          });
+          console.log(`📡 Notified player ${result.opponent_id} about match ${result.match_id}`);
+        } catch (pusherError) {
+          console.warn('Failed to send Pusher notification to first player:', pusherError);
+        }
+
+        return NextResponse.json({
+          matched: true,
+          matchId: result.match_id,
+          opponentId: result.opponent_id
         });
-        console.log(`📡 Notified player ${opponent.player_id} about match ${match.id}`);
-      } catch (pusherError) {
-        console.warn('Failed to send Pusher notification to first player:', pusherError);
       }
-
+    } else {
+      // Player was added to queue
+      console.log(`⏳ Player ${playerId} added to queue (${result.queue_id})`);
       return NextResponse.json({
-        matched: true,
-        matchId: match.id,
-        opponentId: opponent.player_id
+        matched: false,
+        queueId: result.queue_id,
+        message: 'Waiting for opponent'
       });
     }
-
-    return NextResponse.json({
-      matched: false,
-      queueId: queueEntry.id,
-      message: 'Waiting for opponent'
-    });
 
   } catch (error) {
     console.error('❌ Matchmaking join error:', error);
