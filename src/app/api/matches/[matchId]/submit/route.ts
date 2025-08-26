@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase';
 import { pusherServer } from '@/lib/pusher';
 import { generateRandomSequence, calculateSum } from '@/utils/gameHelpers';
+import { calculateMultiplayerDifficulty, shouldIncreaseDifficulty, getDifficultyIncrease } from '@/utils/multiplayerDifficulty';
 
 export async function POST(
   request: NextRequest,
@@ -107,12 +108,18 @@ export async function POST(
           winner_id: match.player2_id
         };
       } else {
-        // Both correct OR both incorrect - generate new sequence and continue
+        // Both correct OR both incorrect - continue to next round
         console.log('🔄 Both players same result, continuing to next round...');
         nextRoundNeeded = true;
+        
+        // Increment completed rounds if both players got it correct
+        const newCompletedRounds = (player1Correct && player2Correct) 
+          ? match.completed_rounds + 1 
+          : match.completed_rounds;
+        
         matchUpdate = {
-          current_round: match.current_round + 1
-          // No turn switching - both players answer simultaneously
+          current_round: match.current_round + 1,
+          completed_rounds: newCompletedRounds
         };
       }
 
@@ -130,9 +137,38 @@ export async function POST(
         .select()
         .single();
 
-      // Create next round if needed
+      // Handle difficulty scaling and create next round if needed
+      let difficultyIncrease = null;
       if (nextRoundNeeded) {
-        const sequence = generateRandomSequence(5); // Same as single-player
+        // Calculate difficulty scaling
+        const newCompletedRounds = matchUpdate.completed_rounds as number;
+        const currentDifficulty = {
+          sequenceLength: match.sequence_length || 5,
+          displayInterval: match.display_interval || 1000,
+          lastDifficultyType: match.last_difficulty_type
+        };
+        
+        const newDifficulty = calculateMultiplayerDifficulty(newCompletedRounds);
+        
+        // Check if difficulty should increase
+        if (shouldIncreaseDifficulty(newCompletedRounds)) {
+          difficultyIncrease = getDifficultyIncrease(currentDifficulty, newDifficulty);
+          console.log('⚡ Difficulty increasing:', difficultyIncrease);
+          
+          // Update match with new difficulty settings
+          await supabase
+            .from('matches')
+            .update({
+              sequence_length: newDifficulty.sequenceLength,
+              display_interval: newDifficulty.displayInterval,
+              last_difficulty_type: newDifficulty.lastDifficultyType
+            })
+            .eq('id', matchId);
+        }
+        
+        // Generate sequence using current/new difficulty
+        const sequenceLength = newDifficulty.sequenceLength;
+        const sequence = generateRandomSequence(sequenceLength);
         const correctSum = calculateSum(sequence);
 
         await supabase
@@ -150,7 +186,8 @@ export async function POST(
         const pusherData = {
           round: updatedRound,
           match: updatedMatch,
-          nextRoundNeeded
+          nextRoundNeeded,
+          ...(difficultyIncrease && { difficultyIncrease })
         };
         
         await pusherServer.trigger(`match-${matchId}`, 'round-completed', pusherData);

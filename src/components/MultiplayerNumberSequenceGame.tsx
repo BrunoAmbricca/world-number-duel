@@ -25,8 +25,10 @@ export default function MultiplayerNumberSequenceGame({ matchId }: MultiplayerNu
     isLoading,
     error,
     isGameActive,
+    difficultyIncrease: hookDifficultyIncrease,
     submitAnswer: submitMultiplayerAnswer,
     loadMatch,
+    clearDifficultyIncrease,
   } = useMultiplayerGame(matchId, session?.playerId || '');
 
   // Local game state for sequence display
@@ -322,6 +324,18 @@ export default function MultiplayerNumberSequenceGame({ matchId }: MultiplayerNu
           </p>
         </div>
 
+        {/* Difficulty Indicator */}
+        <div className="mb-4 flex items-center justify-center gap-4 text-sm">
+          <div className="flex items-center gap-1 text-blue-600">
+            <span>📊</span>
+            <span>{match.sequence_length || 5} numbers</span>
+          </div>
+          <div className="flex items-center gap-1 text-purple-600">
+            <span>⏱️</span>
+            <span>{((match.display_interval || 1000) / 1000).toFixed(1)}s interval</span>
+          </div>
+        </div>
+
         {/* Sequence Display - Same as single-player */}
         <SequenceDisplay
           sequence={currentRound.sequence}
@@ -329,22 +343,31 @@ export default function MultiplayerNumberSequenceGame({ matchId }: MultiplayerNu
           isDisplaying={gameState === 'displaying'}
           onNext={nextNumber}
           onFinish={finishSequence}
+          timeLeft={timeLeft}
+          isTimerActive={isTimerActive}
+          timerStartTime={timerStartTime}
+          displayInterval={match.display_interval || 1000}
         />
         
         {/* Game Controls - Same as single-player */}
         <GameControls
-          gameState={gameState as any} // Cast for compatibility with single-player GameState
+          gameState={gameState === 'waiting' ? 'result' : gameState}
           userAnswer={userAnswer}
           setUserAnswer={setUserAnswer}
           correctSum={currentRound.correct_sum}
           isCorrect={isCorrect}
           currentRound={match.current_round}
-          completedRounds={0} // Not used in multiplayer
+          completedRounds={match.completed_rounds || 0}
           finalScore={0} // Not used in multiplayer
           highScore={0} // Not used in multiplayer
           timeLeft={timeLeft}
           isTimerActive={isTimerActive}
           timerStartTime={timerStartTime}
+          difficulty={{
+            sequenceLength: match.sequence_length || 5,
+            displayInterval: match.display_interval || 1000,
+            lastDifficultyType: match.last_difficulty_type
+          }}
           onStart={() => {}} // No manual start in multiplayer
           onSubmit={submitAnswer}
           onNextRound={() => {}} // Not used in multiplayer
@@ -352,6 +375,30 @@ export default function MultiplayerNumberSequenceGame({ matchId }: MultiplayerNu
           onBackToMenu={() => router.push('/queue')}
           disabled={hasSubmitted || gameState === 'waiting'}
         />
+
+        {/* Difficulty Increase Notification */}
+        {hookDifficultyIncrease && (
+          <div className="mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
+            <div className="text-orange-800 font-bold text-lg mb-2 text-center">⚡ Difficulty Increased!</div>
+            <div className="text-sm text-orange-700 text-center space-y-1">
+              {hookDifficultyIncrease.type === 'sequence' && (
+                <p>📊 Sequence length increased to {hookDifficultyIncrease.newSequenceLength} numbers</p>
+              )}
+              {hookDifficultyIncrease.type === 'timing' && (
+                <p>⏱️ Display speed increased to {(hookDifficultyIncrease.newDisplayInterval / 1000).toFixed(1)}s per number</p>
+              )}
+              <p className="text-xs mt-2 text-orange-600">
+                Difficulty increases every 3 rounds for both players
+              </p>
+            </div>
+            <button
+              onClick={clearDifficultyIncrease}
+              className="mt-2 w-full px-3 py-1 bg-orange-200 hover:bg-orange-300 text-orange-800 text-sm rounded transition-colors"
+            >
+              Got it!
+            </button>
+          </div>
+        )}
 
         {/* Multiplayer specific status */}
         {gameState === 'waiting' && (

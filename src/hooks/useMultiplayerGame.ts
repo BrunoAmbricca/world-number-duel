@@ -8,16 +8,22 @@ interface MultiplayerGameState extends MatchState {
   error?: string;
   isSubmitting: boolean;
   waitingForOpponent: boolean;
+  difficultyIncrease?: {
+    type: 'sequence' | 'timing';
+    newSequenceLength: number;
+    newDisplayInterval: number;
+  } | null;
 }
 
 export function useMultiplayerGame(matchId: string, playerId: string) {
   const [state, setState] = useState<MultiplayerGameState>({
-    match: null as any,
+    match: {} as any,
     currentRound: undefined,
     rounds: [],
     isLoading: true,
     isSubmitting: false,
     waitingForOpponent: false,
+    difficultyIncrease: null,
   });
 
   const loadMatch = useCallback(async () => {
@@ -79,6 +85,10 @@ export function useMultiplayerGame(matchId: string, playerId: string) {
     }
   }, [matchId, playerId, state.isSubmitting, loadMatch]);
 
+  const clearDifficultyIncrease = useCallback(() => {
+    setState(prev => ({ ...prev, difficultyIncrease: null }));
+  }, []);
+
   // Real-time updates
   useEffect(() => {
     const pusherClient = getPusherClient();
@@ -100,6 +110,7 @@ export function useMultiplayerGame(matchId: string, playerId: string) {
           ...prev,
           match: data.match,
           waitingForOpponent: false,
+          difficultyIncrease: data.difficultyIncrease || null,
         };
         console.log('📊 New state after update:', newState);
         return newState;
@@ -139,6 +150,7 @@ export function useMultiplayerGame(matchId: string, playerId: string) {
     ...state,
     submitAnswer,
     loadMatch,
+    clearDifficultyIncrease,
     isGameActive,
   };
 }

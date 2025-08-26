@@ -47,7 +47,16 @@ export async function POST(request: NextRequest) {
       } else {
         // New match was created, generate first round
         console.log(`🎯 New match created: ${result.match_id} (${result.opponent_id} vs ${playerId})`);
-        const sequence = generateRandomSequence(5);
+        
+        // Get match details to access difficulty settings
+        const { data: match } = await supabase
+          .from('matches')
+          .select('*')
+          .eq('id', result.match_id)
+          .single();
+          
+        const sequenceLength = match?.sequence_length || 5;
+        const sequence = generateRandomSequence(sequenceLength);
         const correctSum = calculateSum(sequence);
 
         const { error: roundError } = await supabase

@@ -12,6 +12,7 @@ interface SequenceDisplayProps {
   timeLeft: number;
   isTimerActive: boolean;
   timerStartTime: number;
+  displayInterval?: number; // in milliseconds
 }
 
 export const SequenceDisplay = ({ 
@@ -22,7 +23,8 @@ export const SequenceDisplay = ({
   onFinish,
   timeLeft,
   isTimerActive,
-  timerStartTime
+  timerStartTime,
+  displayInterval = 1000
 }: SequenceDisplayProps) => {
   const timerBarRef = useRef<HTMLDivElement>(null);
 
@@ -35,10 +37,10 @@ export const SequenceDisplay = ({
       } else {
         onFinish();
       }
-    }, 1000);
+    }, displayInterval);
 
     return () => clearTimeout(timer);
-  }, [currentIndex, sequence.length, isDisplaying, onNext, onFinish]);
+  }, [currentIndex, sequence.length, isDisplaying, onNext, onFinish, displayInterval]);
 
   // Handle timer bar animation
   useEffect(() => {

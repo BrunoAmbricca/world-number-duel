@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGameLogic } from '@/hooks/useGameLogic';
 import { useSession } from '@/hooks/useSession';
@@ -22,6 +22,9 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
   const { addCoins } = useCoins();
   const [highScore, setHighScore] = useState<number>(0);
   const [isLoadingScore, setIsLoadingScore] = useState<boolean>(true);
+  const [isSavingScore, setIsSavingScore] = useState<boolean>(false);
+  const hasProcessedScoreRef = useRef<boolean>(false);
+  const lastProcessedScoreRef = useRef<number>(-1);
 
   const {
     gameState,
@@ -37,6 +40,7 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
     timeLeft,
     isTimerActive,
     timerStartTime,
+    difficulty,
     startGame,
     nextNumber,
     finishSequence,
@@ -61,14 +65,27 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
     loadHighScore();
   }, [session.playerId]);
 
-  // Save high score when game ends
+  // Save high score when game ends - optimized to run only once per game session
   useEffect(() => {
-    if (gameState === 'gameOver' && finalScore > 0) {
+    if (
+      gameState === 'gameOver' && 
+      finalScore > 0 && 
+      !hasProcessedScoreRef.current && 
+      !isSavingScore &&
+      finalScore > highScore &&
+      lastProcessedScoreRef.current !== finalScore
+    ) {
+      // Mark as processed immediately to prevent duplicates
+      hasProcessedScoreRef.current = true;
+      lastProcessedScoreRef.current = finalScore;
+      setIsSavingScore(true);
+      
       const saveScore = async () => {
         try {
           const response = await api.saveHighScore(session.playerId, finalScore);
+          
           if (response.isNewRecord) {
-            setHighScore(finalScore);
+            setHighScore(response.highScore);
           }
 
           // Reward coins based on performance
@@ -82,12 +99,33 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
           }
         } catch (error) {
           console.error('Failed to save high score:', error);
+          // Reset the flags on error so user can retry
+          hasProcessedScoreRef.current = false;
+          lastProcessedScoreRef.current = -1;
+        } finally {
+          setIsSavingScore(false);
         }
       };
 
       saveScore();
     }
-  }, [gameState, finalScore, session.playerId, addCoins]);
+  // Remove highScore from dependencies to prevent re-triggering when high score updates
+  }, [gameState, finalScore, session.playerId, addCoins, isSavingScore, highScore]);
+
+  // Wrapper functions to reset the score processing flag
+  const handleStartGame = () => {
+    hasProcessedScoreRef.current = false; // Reset flag for new game
+    lastProcessedScoreRef.current = -1; // Reset last processed score
+    setIsSavingScore(false); // Reset saving state
+    startGame();
+  };
+
+  const handleResetGame = () => {
+    hasProcessedScoreRef.current = false; // Reset flag for new game
+    lastProcessedScoreRef.current = -1; // Reset last processed score
+    setIsSavingScore(false); // Reset saving state
+    resetGame();
+  };
 
   const handleEndSession = () => {
     endSession();
@@ -138,6 +176,7 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
           timeLeft={timeLeft}
           isTimerActive={isTimerActive}
           timerStartTime={timerStartTime}
+          displayInterval={difficulty.displayInterval}
         />
         
         {/* Middle and Bottom Section - Game Controls */}
@@ -154,10 +193,11 @@ export const NumberSequenceGame = ({ session }: NumberSequenceGameProps) => {
           timeLeft={timeLeft}
           isTimerActive={isTimerActive}
           timerStartTime={timerStartTime}
-          onStart={startGame}
+          difficulty={difficulty}
+          onStart={handleStartGame}
           onSubmit={submitAnswer}
           onNextRound={nextRound}
-          onReset={resetGame}
+          onReset={handleResetGame}
           onBackToMenu={handleBackToMenu}
         />
       </div>

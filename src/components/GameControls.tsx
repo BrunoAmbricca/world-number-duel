@@ -2,6 +2,12 @@
 
 import { GameState } from '@/hooks/useGameLogic';
 
+interface DifficultySettings {
+  sequenceLength: number;
+  displayInterval: number;
+  lastDifficultyType: 'sequence' | 'timing' | null;
+}
+
 interface GameControlsProps {
   gameState: GameState;
   userAnswer: string;
@@ -15,6 +21,7 @@ interface GameControlsProps {
   timeLeft: number;
   isTimerActive: boolean;
   timerStartTime: number;
+  difficulty: DifficultySettings;
   onStart: () => void;
   onSubmit: () => void;
   onNextRound: () => void;
@@ -33,6 +40,7 @@ export const GameControls = ({
   completedRounds,
   finalScore,
   highScore,
+  difficulty,
   onStart,
   onSubmit,
   onNextRound,
@@ -57,9 +65,20 @@ export const GameControls = ({
         {/* Middle Section - Title and Description */}
         <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800">Number Sequence Game</h1>
-          <p className="text-lg text-gray-600 mb-8 max-w-md leading-relaxed">
+          <p className="text-lg text-gray-600 mb-6 max-w-md leading-relaxed">
             Watch the sequence of numbers appear on screen, then calculate their sum. Keep going until you make a mistake!
           </p>
+          
+          {/* Difficulty Progression Info */}
+          <div className="bg-blue-50 rounded-xl p-4 mb-6 max-w-md">
+            <h3 className="text-lg font-semibold text-blue-800 mb-2">📈 Dynamic Difficulty</h3>
+            <div className="text-sm text-blue-700 space-y-1">
+              <p>• Start with 5 numbers at 1.0s intervals</p>
+              <p>• Every 3 rounds: difficulty increases</p>
+              <p>• More numbers OR faster display speed</p>
+              <p>• Minimum speed: 0.5s per number</p>
+            </div>
+          </div>
         </div>
         
         {/* Bottom Section - Action Button */}
@@ -86,6 +105,18 @@ export const GameControls = ({
           <h3 className="text-lg text-gray-600 mt-2">
             What&apos;s the sum of all numbers?
           </h3>
+          
+          {/* Difficulty Indicator */}
+          <div className="mt-3 flex items-center justify-center gap-4 text-sm">
+            <div className="flex items-center gap-1 text-blue-600">
+              <span>📊</span>
+              <span>{difficulty.sequenceLength} numbers</span>
+            </div>
+            <div className="flex items-center gap-1 text-purple-600">
+              <span>⏱️</span>
+              <span>{(difficulty.displayInterval / 1000).toFixed(1)}s interval</span>
+            </div>
+          </div>
         </div>
 
         {/* Middle Section - Input Field */}
@@ -117,6 +148,9 @@ export const GameControls = ({
   }
 
   if (gameState === 'result') {
+    // Check if difficulty increased this round
+    const isDifficultyIncrease = completedRounds > 0 && completedRounds % 3 === 0;
+    
     return (
       <div className="flex flex-col h-full">
         {/* Middle Section - Result Display */}
@@ -131,6 +165,24 @@ export const GameControls = ({
             <p>Your answer: <span className="font-bold">{userAnswer}</span></p>
             <p>Correct answer: <span className="font-bold">{correctSum}</span></p>
             <p className="mt-4 font-bold text-blue-600 text-xl">Round {completedRounds} Complete!</p>
+            
+            {/* Difficulty Increase Notification */}
+            {isCorrect && isDifficultyIncrease && (
+              <div className="mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div className="text-orange-800 font-bold text-lg mb-2">⚡ Difficulty Increased!</div>
+                <div className="text-sm text-orange-700 space-y-1">
+                  {difficulty.lastDifficultyType === 'sequence' && (
+                    <p>📊 Sequence length increased to {difficulty.sequenceLength} numbers</p>
+                  )}
+                  {difficulty.lastDifficultyType === 'timing' && (
+                    <p>⏱️ Display speed increased to {(difficulty.displayInterval / 1000).toFixed(1)}s per number</p>
+                  )}
+                  <p className="text-xs mt-2 text-orange-600">
+                    Difficulty increases every 3 rounds
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         

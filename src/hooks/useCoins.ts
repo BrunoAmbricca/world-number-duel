@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from './useSession';
 
 const COINS_STORAGE_KEY = 'player-coins';
@@ -42,11 +42,11 @@ export const useCoins = () => {
     }
   }, [coins, session, isLoading]);
 
-  const addCoins = (amount: number) => {
+  const addCoins = useCallback((amount: number) => {
     if (amount > 0) {
       setCoins(prev => prev + amount);
     }
-  };
+  }, []);
 
   const spendCoins = (amount: number): boolean => {
     if (amount <= coins && amount > 0) {

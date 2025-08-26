@@ -117,9 +117,9 @@ BEGIN
   FOR UPDATE;
   
   IF waiting_player IS NOT NULL THEN
-    -- Found a match! Create the match record
-    INSERT INTO matches (player1_id, player2_id, status, current_turn)
-    VALUES (waiting_player.player_id, new_player_id, 'active', waiting_player.player_id)
+    -- Found a match! Create the match record with initial difficulty settings
+    INSERT INTO matches (player1_id, player2_id, status, current_turn, completed_rounds, sequence_length, display_interval, last_difficulty_type)
+    VALUES (waiting_player.player_id, new_player_id, 'active', waiting_player.player_id, 0, 5, 1000, null)
     RETURNING id INTO new_match_id;
     
     -- Remove both players from the queue

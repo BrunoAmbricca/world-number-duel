@@ -16,6 +16,10 @@ export interface Match {
   updated_at: string;
   current_round: number;
   current_turn?: string;
+  completed_rounds: number;
+  sequence_length: number;
+  display_interval: number;
+  last_difficulty_type: 'sequence' | 'timing' | null;
   player1?: User;
   player2?: User;
 }
@@ -42,6 +46,12 @@ export interface MatchmakingQueue {
   joined_at: string;
 }
 
+export interface MultiplayerDifficultySettings {
+  sequenceLength: number;
+  displayInterval: number;
+  lastDifficultyType: 'sequence' | 'timing' | null;
+}
+
 export interface MatchState {
   match: Match;
   currentRound?: MatchRound;
@@ -53,6 +63,11 @@ export interface PusherEvents {
     round: MatchRound;
     match: Match;
     nextRoundNeeded: boolean;
+    difficultyIncrease?: {
+      type: 'sequence' | 'timing';
+      newSequenceLength: number;
+      newDisplayInterval: number;
+    };
   };
   'answer-submitted': {
     playerId: string;
