@@ -50,7 +50,9 @@ export const GameControls = ({
 }: GameControlsProps) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserAnswer(e.target.value);
+    // Only allow numeric characters (0-9)
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setUserAnswer(value);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -122,14 +124,20 @@ export const GameControls = ({
         {/* Middle Section - Input Field */}
         <div className="flex-1 flex items-center justify-center px-6">
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             value={userAnswer}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="Enter your answer"
-            className={`text-3xl md:text-4xl text-center border-2 border-gray-300 rounded-xl px-6 py-4 w-full max-w-sm focus:border-blue-500 focus:outline-none ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+            className={`text-3xl md:text-4xl text-center text-black border-2 border-gray-300 rounded-xl px-6 py-4 w-full max-w-sm focus:border-blue-500 focus:outline-none ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''} [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
             autoFocus
             disabled={disabled}
+            style={{ 
+              WebkitAppearance: 'none', 
+              MozAppearance: 'textfield'
+            }}
           />
         </div>
         
